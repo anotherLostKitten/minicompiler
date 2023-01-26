@@ -263,7 +263,6 @@ public class Tokeniser{
 		}
 	  }
 	  String s=v.toString();
-	  //todo check if keyword
 	  if(s.equals("int"))
 		return new Token(TokenClass.INT,ln,cn);
 	  if(s.equals("void"))
