@@ -23,10 +23,10 @@ exp   ::= ("-" | "+") exp
 		| funcall expp
         | (INT_LITERAL | CHAR_LITERAL | STRING_LITERAL) expp
 		| sizeof expp
-expp  ::= ("="|">"|"<"|">="|"<="|"!="|"=="|"+"|"-"|"/"|"*"|"%"|"||"|"&&") exp expp
-        | arrayaccess expp
-		| fieldaccess expp
-		| EPSILON
+expp ::= ("="|">"|"<"|">="|"<="|"!="|"=="|"+"|"-"|"/"|"*"|"%"|"||"|"&&") exp expp
+       | arrayaccess expp
+	   | fieldaccess expp
+	   | EPSILON
 funcall      ::= IDENT "(" [ exp ("," exp)* ] ")"
 valueat      ::= "*" exp
 addressof    ::= "&" exp
