@@ -1,10 +1,12 @@
-program    ::= (include)* (structdecl | vardecl | fundecl)* EOF
+program    ::= include* decl* EOF
 include    ::= "#include" STRING_LITERAL
+decl 	   ::= structdecl | vardecl | fundecl
 structdecl ::= structtype "{" (vardecl)+ "}" ";"
 vardecl    ::= type IDENT ("[" INT_LITERAL "]")* ";"
 fundecl    ::= type IDENT "(" params ")" block
 type       ::= ("int" | "char" | "void" | structtype) ("*")*
 structtype ::= "struct" IDENT
+
 params     ::= [ type IDENT ("," type IDENT)* ]
 stmt       ::= block
              | "while" "(" exp ")" stmt
@@ -12,18 +14,23 @@ stmt       ::= block
              | "return" [exp] ";"
              | exp ";"
 block      ::= "{" (vardecl)* (stmt)* "}"
-exp        ::= "(" exp ")"
-             | exp "=" exp
-             | (IDENT | INT_LITERAL)
-             | ("-" | "+") exp
-             | CHAR_LITERAL
-             | STRING_LITERAL
-             | exp (">" | "<" | ">=" | "<=" | "!=" | "==" | "+" | "-" | "/" | "*" | "%" | "||" | "&&") exp
-             | arrayaccess | fieldaccess | valueat | addressof | funcall | sizeof | typecast
+
+exp   ::= ("-" | "+") exp
+		| valueat | addressof
+        | typecast
+        | "(" exp ")" expp
+		| IDENT expp
+		| funcall expp
+        | (INT_LITERAL | CHAR_LITERAL | STRING_LITERAL) expp
+		| sizeof expp
+expp  ::= ("="|">"|"<"|">="|"<="|"!="|"=="|"+"|"-"|"/"|"*"|"%"|"||"|"&&") exp expp
+        | arrayaccess expp
+		| fieldaccess expp
+		| EPSILON
 funcall      ::= IDENT "(" [ exp ("," exp)* ] ")"
-arrayaccess  ::= exp "[" exp "]"
-fieldaccess  ::= exp "." IDENT
 valueat      ::= "*" exp
 addressof    ::= "&" exp
 sizeof       ::= "sizeof" "(" type ")"
 typecast     ::= "(" type ")" exp
+arrayaccess  ::= "[" exp "]"
+fieldaccess  ::= "." IDENT
