@@ -1,29 +1,29 @@
 program    ::= (include)* (structdecl | vardecl | fundecl)* EOF
 include    ::= "#include" STRING_LITERAL
-structdecl ::= structtype "{" (vardecl)+ "}" ";"    # structure declaration
-vardecl    ::= type IDENT ("[" INT_LITERAL "]")* ";" # normal declaration, (e.g. int a;), or multi-dimensional array declaration, (e.g. int a[2][5];)
-fundecl    ::= type IDENT "(" params ")" block    # function declaration
+structdecl ::= structtype "{" (vardecl)+ "}" ";"
+vardecl    ::= type IDENT ("[" INT_LITERAL "]")* ";"
+fundecl    ::= type IDENT "(" params ")" block
 type       ::= ("int" | "char" | "void" | structtype) ("*")*
 structtype ::= "struct" IDENT
 params     ::= [ type IDENT ("," type IDENT)* ]
 stmt       ::= block
-             | "while" "(" exp ")" stmt              # while loop
-             | "if" "(" exp ")" stmt ["else" stmt]   # if then else
-             | "return" [exp] ";"                    # return
-             | exp ";"                               # expression statement, e.g. a function call
+             | "while" "(" exp ")" stmt
+             | "if" "(" exp ")" stmt ["else" stmt]
+             | "return" [exp] ";"
+             | exp ";"
 block      ::= "{" (vardecl)* (stmt)* "}"
 exp        ::= "(" exp ")"
-             | exp "=" exp                           # assignment
+             | exp "=" exp
              | (IDENT | INT_LITERAL)
              | ("-" | "+") exp
              | CHAR_LITERAL
              | STRING_LITERAL
-             | exp (">" | "<" | ">=" | "<=" | "!=" | "==" | "+" | "-" | "/" | "*" | "%" | "||" | "&&") exp  # binary operators
+             | exp (">" | "<" | ">=" | "<=" | "!=" | "==" | "+" | "-" | "/" | "*" | "%" | "||" | "&&") exp
              | arrayaccess | fieldaccess | valueat | addressof | funcall | sizeof | typecast
-funcall      ::= IDENT "(" [ exp ("," exp)* ] ")" # function call
-arrayaccess  ::= exp "[" exp "]"                  # array access
-fieldaccess  ::= exp "." IDENT                    # structure field member access
-valueat      ::= "*" exp                          # Value at operator (pointer indirection)
-addressof    ::= "&" exp                          # Address-of operator
-sizeof       ::= "sizeof" "(" type ")"            # size of type
-typecast     ::= "(" type ")" exp                 # type casting
+funcall      ::= IDENT "(" [ exp ("," exp)* ] ")"
+arrayaccess  ::= exp "[" exp "]"
+fieldaccess  ::= exp "." IDENT
+valueat      ::= "*" exp
+addressof    ::= "&" exp
+sizeof       ::= "sizeof" "(" type ")"
+typecast     ::= "(" type ")" exp
