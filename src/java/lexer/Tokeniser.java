@@ -117,19 +117,13 @@ public class Tokeniser{
 	  return new Token(TokenClass.DIV,ln,cn);
 	case'#':
 	  v=new StringBuilder();
-	  while(sc.hasNext()&&Character.isLetter(sc.peek()))
+	  while(sc.hasNext()&&(sc.peek()=='_'||Character.isLetterOrDigit(sc.peek())))
 		v.append(sc.next());
-	  if(!v.toString().equals("include")){
-		System.err.println("Unrecognized preprosser (sp.) directive");
-		error(c,ln,cn);
-		return new Token(TokenClass.INVALID,ln,cn);
-	  }
-	  v=new StringBuilder();
-	  while(sc.hasNext()&&sc.peek()!='\n'&&Character.isWhitespace(sc.peek()))
-		sc.next();//in case whitespace before directive
-	  while(sc.hasNext()&&sc.peek()!='\n')
-		v.append(sc.next());//consume filename to include, just rest of line?
-	  return new Token(TokenClass.INCLUDE,v.toString(),ln,cn);
+	  if(v.toString().equals("include"))
+		return new Token(TokenClass.INCLUDE,ln,cn);
+	  System.err.println("Unrecognized preprosser (sp.) directive");
+	  error(c,ln,cn);
+	  return new Token(TokenClass.INVALID,ln,cn);
 	case'"':
 	  v=new StringBuilder();
 	  while(sc.hasNext()){
@@ -189,7 +183,7 @@ public class Tokeniser{
 		  return new Token(TokenClass.INVALID,ln,cn);
 		case'\\':
 		  switch(sc.next()){
-		  case't':
+		  case't'://imagine decommposing things into functions couldn't be me
 			v.append('\t');
 			break;
 		  case'b':
@@ -249,19 +243,14 @@ public class Tokeniser{
 	  }
 	  return new Token(TokenClass.INT_LITERAL,v.toString(),ln,cn);
 	default://identifier or keyword
-	  if(!Character.isJavaIdentifierStart(c)||c=='$'){//unrecognized eg. ^
+	  if(c!='_'&&!Character.isLetter(c)){//unrecognized eg. ^
 		error(c,ln,cn);
 		return new Token(TokenClass.INVALID,ln,cn);
 	  }
 	  v=new StringBuilder();
 	  v.append(c);
-	  while(sc.hasNext()&&Character.isJavaIdentifierPart(sc.peek())){
+	  while(sc.hasNext()&&(sc.peek()=='_'||Character.isLetterOrDigit(sc.peek())))
 		v.append(c=sc.next());
-		if(c=='$'){//allowed by java identifier, disallowed by grammar spec
-		  error(c,ln,cn);
-		  return new Token(TokenClass.INVALID,v.toString(),ln,cn);
-		}
-	  }
 	  String s=v.toString();
 	  if(s.equals("int"))
 		return new Token(TokenClass.INT,ln,cn);
