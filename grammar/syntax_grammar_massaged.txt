@@ -3,13 +3,13 @@ include    ::= "#include" STRING_LITERAL
 decl 	   ::= structdecl | vfdecl
 structdecl ::= structtype "{" (vardecl)+ "}" ";"
 vfdecl     ::= type IDENT (funprams | vararr)
-vararr     ::= ("[" INT_LITERAL "]")* ";"
-funprams   ::= "(" params ")" block
 vardecl    ::= type IDENT vararr
+vararr     ::= ("[" INT_LITERAL "]")* ";"
 type       ::= ("int" | "char" | "void" | structtype) ("*")*
 structtype ::= "struct" IDENT
-
+funprams   ::= "(" params ")" block
 params     ::= [ type IDENT ("," type IDENT)* ]
+
 stmt       ::= block
              | "while" "(" exp ")" stmt
              | "if" "(" exp ")" stmt ["else" stmt]
