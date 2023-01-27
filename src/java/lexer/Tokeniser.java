@@ -163,6 +163,10 @@ public class Tokeniser{
 			return new Token(TokenClass.INVALID,ln,cn);
 		  }
 		  break;
+		case'\n':
+		  System.err.println("Multiline string literal");
+		  error(c,ln,cn);
+		  return new Token(TokenClass.INVALID,ln,cn);
 		default:
 		  v.append(c);
 		}
@@ -213,6 +217,10 @@ public class Tokeniser{
 			return new Token(TokenClass.INVALID,ln,cn);
 		  }
 		  break;
+		case'\n':
+		  System.err.println("Multiline character literal");
+		  error(c,ln,cn);
+		  return new Token(TokenClass.INVALID,ln,cn);
 		default:
 		  v.append(c);
 		}
