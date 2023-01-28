@@ -24,7 +24,7 @@ public class Parser{
 	return error;
   }
   private void error(TokenClass...expected){
-	if(lastErrorToken==token)return;//skip error, same token
+	//if(lastErrorToken==token)return;//skip error, same token
 	StringBuilder sb=new StringBuilder();
 	String sep="";
 	for(TokenClass e:expected){
@@ -36,18 +36,14 @@ public class Parser{
 	error++;
 	lastErrorToken=token;
   }
-
-  //look ahead i elements in token stream; i>0
-  private Token lookAhead(int i){
+  private Token lookAhead(int i){//look ahead i elements in token stream; i>0
 	while(buffer.size()<i)//ensures the buffer has the element we want
 	  buffer.add(tokeniser.nextToken());
 	int cnt=1;
-	for(Token t:buffer){
-	  if(cnt==i)
+	for(Token t:buffer)
+	  if(cnt++==i)
 		return t;
-	  cnt++;
-	}
-	assert false; // should never reach this
+	assert false;//should never reach this
 	return tokeniser.nextToken();
   }
   //consume next token from tokeniser, or buffer if not empty
@@ -64,6 +60,7 @@ public class Parser{
 		nextToken();
 		return;
 	  }
+	nextToken();
 	error(expected);
   }
   //return whether current token is equal to any expected one
