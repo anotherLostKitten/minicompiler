@@ -24,7 +24,7 @@ public class Parser{
 	return error;
   }
   private void error(TokenClass...expected){
-	//if(lastErrorToken==token)return;//skip error, same token
+	if(lastErrorToken==token)return;//skip error, same token
 	StringBuilder sb=new StringBuilder();
 	String sep="";
 	for(TokenClass e:expected){
