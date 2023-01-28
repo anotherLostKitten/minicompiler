@@ -60,8 +60,8 @@ public class Parser{
 		nextToken();
 		return;
 	  }
-	nextToken();
 	error(expected);
+	nextToken();
   }
   //return whether current token is equal to any expected one
   private boolean accept(TokenClass...expected){
