@@ -1,8 +1,14 @@
 package parser;
+import ast.FunDecl;
+import ast.Program;
+import ast.StructTypeDecl;
+import ast.VarDecl;
 import lexer.Token;
 import lexer.Token.TokenClass;
 import lexer.Tokeniser;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 /**
  * @author cdubach
