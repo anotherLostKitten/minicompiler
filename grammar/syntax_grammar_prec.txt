@@ -26,9 +26,8 @@ pr3 ::= pr2 ("*"|"/"|"&" pr2)*
 pr2 ::= ("-"|"+"|"*"|"&") pr2
       | "(" type ")" pr2 //must check also against "(" exp ")"
 	  | pr1
-pr1 ::=	pr0 "=" pr1
-      | pr0 ("[" exp "]")*
-	  | pr0 ("." IDENT)*
+pr1 ::= pr1a "=" pr1
+pr1a::=	pr0 ( ("[" exp "]") | ("." IDENT) )*
 pr0 ::= "(" exp ")"
       | IDENT
 	  | funcall
