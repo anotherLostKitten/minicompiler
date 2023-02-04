@@ -49,6 +49,7 @@
     <javac debug="true" excludes="test/**" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
       <src path="src"/>
       <compilerarg value="--enable-preview" />
+	  <compilerarg value="-Xlint:unchecked" />
     </javac>
   </target>
   <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
