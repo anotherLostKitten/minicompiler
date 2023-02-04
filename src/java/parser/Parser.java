@@ -254,7 +254,7 @@ public class Parser{
 	  if(accept(TokenClass.EQ)){
 		nextToken();
 		l=new BinOp(l,parsePr5(),Op.EQ);
-	  }else if(accept(TokenClass.EQ)){
+	  }else if(accept(TokenClass.NE)){
 		nextToken();
 		l=new BinOp(l,parsePr5(),Op.NE);
 	  }else

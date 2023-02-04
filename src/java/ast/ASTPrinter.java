@@ -9,22 +9,6 @@ public class ASTPrinter{
 	switch(node){
 	case null->
 	  throw new IllegalStateException("Unexpected null value");
-	case Block ignored->{
-	  writer.print("Block(");
-	  //todo
-	  writer.print(")");
-	}
-	case FunDecl fd->{
-	  writer.print("FunDecl(");
-	  visit(fd.type);
-	  writer.print(","+fd.name+",");
-	  for(VarDecl vd:fd.params){
-		visit(vd);
-		writer.print(",");
-	  }
-	  visit(fd.block);
-	  writer.print(")");
-	}
 	case Program p->{
 	  writer.print("Program(");
 	  String delimiter="";
@@ -46,24 +30,61 @@ public class ASTPrinter{
 	  writer.print(")");
 	  writer.flush();
 	}
+	case BaseType t->{
+	  //todo
+	}
+	case PointerType t->{
+	}
+	case StructType t->{
+	}
+	case ArrayType t->{
+	}
+	case StructTypeDecl std->{
+	  //todo
+	}
 	case VarDecl vd->{
 	  writer.print("VarDecl(");
 	  visit(vd.type);
 	  writer.print(","+vd.name);
 	  writer.print(")");
 	}
+	case FunDecl fd->{
+	  writer.print("FunDecl(");
+	  visit(fd.type);
+	  writer.print(","+fd.name+",");
+	  for(VarDecl vd:fd.params){
+		visit(vd);
+		writer.print(",");
+	  }
+	  visit(fd.block);
+	  writer.print(")");
+	}
+	case IntLiteral i->{}
+	case StrLiteral s->{}
+	case ChrLiteral c->{}
 	case VarExpr v->{
 	  writer.print("VarExpr(");
 	  writer.print(v.name);
 	  writer.print(")");
 	}
-	case BaseType bt->{
+	case FunCallExpr fc->{}
+	case BinOp bo->{}
+	case ArrayAccessExpr ra->{}
+	case FieldAccessExpr fa->{}
+	case ValueAtExpr va->{}
+	case AddressOfExpr ao->{}
+	case SizeOfExpr so->{}
+	case TypecastExpr tc->{}
+	case Assign as->{}
+	case ExprStmt es->{}
+	case While w->{}
+	case If ie->{}
+	case Return r->{}
+	case Block b->{
+	  writer.print("Block(");
 	  //todo
+	  writer.print(")");
 	}
-	case StructTypeDecl std->{
-	  //todo
-	}
-	//todo
 	}
   }
 }
