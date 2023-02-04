@@ -64,7 +64,7 @@ public class Token{
   public Token(TokenClass type,int lineNum,int colNum){
 	this(type,"",lineNum,colNum);
   }
-  public Token (TokenClass tokenClass,String data,int lineNum,int colNum){
+  public Token(TokenClass tokenClass,String data,int lineNum,int colNum){
 	assert(tokenClass!=null);
 	this.tokenClass=tokenClass;
 	this.data=data;
