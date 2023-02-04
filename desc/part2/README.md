@@ -124,28 +124,28 @@ You should make sure the resulting grammar is non-ambiguous, eliminate left recu
 As see in the lecture, left-associative binary operators should be handled using an iterative approach in the parser (rather than recursion).
 We suggest that you express these in the grammar using a Kleane closure, which will directly translate to a loop in your parser code.
 
-The associatibity of unary operators is discussed below, but since by definition they only act on a single argument, there is no need to implement any repetition mechanism (either recursive or iterative).
+The associativity of unary operators is discussed below, but since by definition they only act on a single argument, there is no need to implement any repetition mechanism (either recursive or iterative).
 However, you should ensure that precedence is encoded correctly by creating new non-terminals in the gramamr (if needed).
 
 
-| Precedence    |Operator       | Description       |Associativity  |
-| :------------ | :------------ | :-----------      | :-----------  |
-| 1             | ()            | Function call     | Left-to-right |
-| 1             | \[\]          | Array subscripting | Left-to-right |
-| 1             | .             | Structure member access | Left-to-right |
-| 1             | =             | Assignment        | Right-to-left |
-| 2             | +             | Unary plus | Right-to-left |
-| 2             | -             | Unary minus | Right-to-left |
-| 2             | (type)        | Type cast | Right-to-left |
-| 2             | *             | Indirection | Right-to-left |
-| 2             | &             | Address of | Right-to-left |
-| 3             | * / %         | Multiplication, division, remainder | Left-to-right |
-| 4             | + -           | Addition, subtraction | Left-to-right |
-| 5             | < <= > >=     | Relational operators | Left-to-right |
-| 6             | == \!=        | Relational operators | Left-to-right |
-| 7             | &&            | Logical AND | Left-to-right |
-| 8             | ⎮⎮            | Logical OR | Left-to-right |
-  
+| Precedence |Operator       | Description       |Associativity  |
+|:-----------| :------------ | :-----------      | :-----------  |
+| 1          | ()            | Function call     | Left-to-right |
+| 1          | \[\]          | Array subscripting | Left-to-right |
+| 1          | .             | Structure member access | Left-to-right |
+| 2          | +             | Unary plus | Right-to-left |
+| 2          | -             | Unary minus | Right-to-left |
+| 2          | (type)        | Type cast | Right-to-left |
+| 2          | *             | Indirection | Right-to-left |
+| 2          | &             | Address of | Right-to-left |
+| 3          | * / %         | Multiplication, division, remainder | Left-to-right |
+| 4          | + -           | Addition, subtraction | Left-to-right |
+| 5          | < <= > >=     | Relational operators | Left-to-right |
+| 6          | == \!=        | Relational operators | Left-to-right |
+| 7          | &&            | Logical AND | Left-to-right |
+| 8          | ⎮⎮            | Logical OR | Left-to-right |
+| 9          | =             | Assignment        | Right-to-left |
+
 Here is how to "interpret" the following piece of C code based on precedence and associativity:
  
 ```C
@@ -157,6 +157,7 @@ mystruct.field[1] // (mystruct.field)[1]
 &p[1]             // &(p[1])
 a+b+c             // (a+b)+c
 a=b=c             // a=(b=c)
+a=b.c=d           // a=((b.c)=d)
 ```
 
 Note that associativity for unary operators seems at first a bit of an ill-defined concept.
@@ -200,7 +201,7 @@ Using EBNF syntax, the output should be of the form: `AST_NODE_CLASS_NAME '(' [S
 
 ### Examples:
 
-* `y = 3*x;` should result in the following output: `Assign(VarExpr(y),BinOp(IntLiteral(3), MUL, VarExpr(x)))`.
+* `y = 3*x;` should result in the following output: `ExprStmt(Assign(VarExpr(y),BinOp(IntLiteral(3), MUL, VarExpr(x))))`.
 * `void foo() { return; }` should result in: `FunDecl(VOID, foo, Block(Return()))`.
 * `+x` should result in just `BinOp(IntLiteral(0),ADD,VarExpr(x))`
 * `-x` should result in: `BinOp(IntLiteral(0),SUB,VarExpr(x))`.
