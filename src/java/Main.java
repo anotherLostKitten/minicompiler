@@ -101,6 +101,7 @@ public class Main {
                 File outputFile = new File(args[2]);
                 PrintWriter writer = new PrintWriter(outputFile);
                 new ASTPrinter(writer).visit(programAst);
+				writer.print("\n");
                 writer.close();
             } else
                 System.out.println("Parsing: failed (" + parser.getErrorCount() + " errors)");
