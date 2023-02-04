@@ -1,15 +1,14 @@
 package ast;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-public final class VarDecl extends Decl{
-  public VarDecl(Type type,String name){
+public final class PointerType implements Type{
+  public final Type type;
+  public PointerType(Type type){
 	this.type=type;
-	this.name=name;
   }
   public List<ASTNode>children(){
 	List<ASTNode>children=new ArrayList<ASTNode>();
-	children.add(this.type);
+	children.add(type);
 	return children;
   }
 }

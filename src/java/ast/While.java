@@ -1,15 +1,17 @@
 package ast;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-public final class VarDecl extends Decl{
-  public VarDecl(Type type,String name){
-	this.type=type;
-	this.name=name;
+public final class While extends Stmt{
+  public final Expr c;
+  public final Stmt y;
+  public While(Expr c,Stmt y){
+	this.c=c;
+	this.y=y;
   }
   public List<ASTNode>children(){
 	List<ASTNode>children=new ArrayList<ASTNode>();
-	children.add(this.type);
+	children.add(c);
+	children.add(y);
 	return children;
   }
 }

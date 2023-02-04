@@ -11,7 +11,7 @@ public final class Program implements ASTNode{
 	this.funDecls=funDecls;
   }
   public List<ASTNode>children(){
-	List children=new ArrayList<ASTNode>();
+	List<ASTNode>children=new ArrayList<ASTNode>();
 	children.addAll(structTypeDecls);
 	children.addAll(varDecls);
 	children.addAll(funDecls);
