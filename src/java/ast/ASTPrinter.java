@@ -51,7 +51,7 @@ public class ASTPrinter{
 	  writer.print(")");
 	}
 	case StructType t->
-	  writer.print("PointerType("+t.name+")");
+	  writer.print("StructType("+t.name+")");
 	case ArrayType t->{
 	  writer.print("ArrayType(");
 	  visit(t.type);
