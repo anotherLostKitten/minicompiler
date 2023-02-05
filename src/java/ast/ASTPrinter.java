@@ -101,6 +101,7 @@ public class ASTPrinter{
 		writer.print(",");
 		visit(r);
 	  }
+	  writer.print(")");
 	}
 	case BinOp bo->{
 	  writer.print("BinOp(");
