@@ -2,19 +2,13 @@ package ast;
 import java.util.ArrayList;
 import java.util.List;
 public final class Program implements ASTNode{
-  public final List<StructTypeDecl>structTypeDecls;
-  public final List<VarDecl>varDecls;
-  public List<FunDecl>funDecls;
-  public Program(List<StructTypeDecl>structTypeDecls,List<VarDecl>varDecls,List<FunDecl>funDecls){
-	this.structTypeDecls=structTypeDecls;
-	this.varDecls=varDecls;
-	this.funDecls=funDecls;
+  public List<Decl>decls;
+  public Program(List<Decl>decls){
+	this.decls=decls;
   }
   public List<ASTNode>children(){
 	List<ASTNode>children=new ArrayList<ASTNode>();
-	children.addAll(structTypeDecls);
-	children.addAll(varDecls);
-	children.addAll(funDecls);
+	children.addAll(decls);
 	return children;
   }
 }

@@ -13,7 +13,7 @@ import java.util.Queue;
  */
 public class Parser{
   private Token token;
-  private Queue<Token>buffer=new LinkedList<>();
+  private Queue<Token>buffer=new LinkedList<Token>();
   private final Tokeniser tokeniser;
   private int error=0;
   private Token lastErrorToken;
@@ -76,24 +76,22 @@ public class Parser{
   }
   private Program parseProgram(){
 	parseIncludes();
-	List<StructTypeDecl>ss=new ArrayList<StructTypeDecl>();
-	List<VarDecl>vs=new ArrayList<VarDecl>();
-	List<FunDecl>fs=new ArrayList<FunDecl>();
+	List<Decl>ds=new ArrayList<Decl>();
 	while(!accept(TokenClass.EOF))
 	  if(accept(TokenClass.STRUCT)&&lookAhead(1).tokenClass==TokenClass.IDENTIFIER&&lookAhead(2).tokenClass==TokenClass.LBRA)
-		ss.add(parseStructDecl());
+		ds.add(parseStructDecl());
 	  else{
 		Type t=parseType();
 		String s=token.data;
 		expect(TokenClass.IDENTIFIER);
 		if(!accept(TokenClass.LPAR))
-		  vs.add(parseVararr(t,s));
+		  ds.add(parseVararr(t,s));
 		else{
 		  List<VarDecl>ps=parseFunprams();
-		  fs.add(new FunDecl(t,s,ps,parseBlock()));
+		  ds.add(new FunDecl(t,s,ps,parseBlock()));
 		}
 	  }
-	return new Program(ss,vs,fs);
+	return new Program(ds);
   }
   private void parseIncludes(){//includes ignored, so needn't return AST node
 	while(accept(TokenClass.INCLUDE)){

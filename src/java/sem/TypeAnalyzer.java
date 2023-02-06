@@ -13,12 +13,8 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	}
 	case Program p->{
 	  structs=new HashMap<String,Map<String,Type>>();
-	  for(StructTypeDecl std:p.structTypeDecls)
-		visit(std);
-	  for(VarDecl vd:p.varDecls)
-		visit(vd);
-	  for(FunDecl fd:p.funDecls)
-		visit(fd);
+	  for(Decl d:p.decls)
+		visit(d);
 	  yield BaseType.NONE;
 	}
 	case BaseType t->t;

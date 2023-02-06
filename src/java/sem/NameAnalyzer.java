@@ -10,14 +10,10 @@ public class NameAnalyzer extends BaseSemanticAnalyzer{
 	case null->
 	  throw new IllegalStateException("Unexpected null value");
 	case Program p->{
-	  p.funDecls.addAll(0,Arrays.asList(new FunDecl[]{new FunDecl(BaseType.VOID,"print_s",Arrays.asList(new VarDecl[]{new VarDecl(new PointerType(BaseType.CHAR),"s")}),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0))),new FunDecl(BaseType.VOID,"print_i",Arrays.asList(new VarDecl[]{new VarDecl(BaseType.INT,"i")}),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0))),new FunDecl(BaseType.VOID,"print_c",Arrays.asList(new VarDecl[]{new VarDecl(BaseType.CHAR,"c")}),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0))),new FunDecl(BaseType.CHAR,"read_c",new ArrayList<VarDecl>(0),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0))),new FunDecl(BaseType.INT,"read_i",new ArrayList<VarDecl>(0),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0))),new FunDecl(new PointerType(BaseType.VOID),"mcmalloc",Arrays.asList(new VarDecl[]{new VarDecl(BaseType.INT,"size")}),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0)))}));
+	  p.decls.addAll(0,Arrays.asList(new FunDecl[]{new FunDecl(BaseType.VOID,"print_s",Arrays.asList(new VarDecl[]{new VarDecl(new PointerType(BaseType.CHAR),"s")}),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0))),new FunDecl(BaseType.VOID,"print_i",Arrays.asList(new VarDecl[]{new VarDecl(BaseType.INT,"i")}),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0))),new FunDecl(BaseType.VOID,"print_c",Arrays.asList(new VarDecl[]{new VarDecl(BaseType.CHAR,"c")}),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0))),new FunDecl(BaseType.CHAR,"read_c",new ArrayList<VarDecl>(0),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0))),new FunDecl(BaseType.INT,"read_i",new ArrayList<VarDecl>(0),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0))),new FunDecl(new PointerType(BaseType.VOID),"mcmalloc",Arrays.asList(new VarDecl[]{new VarDecl(BaseType.INT,"size")}),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0)))}));
 	  scope=new Scope();
-	  for(StructTypeDecl std:p.structTypeDecls)
-		visit(std);
-	  for(VarDecl vd:p.varDecls)
-		visit(vd);
-	  for(FunDecl fd:p.funDecls)
-		visit(fd);
+	  for(Decl d:p.decls)
+		visit(d);
 	}
 	case BaseType t->{}
 	case PointerType t->{}

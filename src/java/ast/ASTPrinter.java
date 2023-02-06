@@ -20,23 +20,11 @@ public class ASTPrinter{
 	  w.print("Program(");
 	  t++;
 	  String d="";
-	  for(StructTypeDecl std:p.structTypeDecls){
+	  for(Decl std:p.decls){
 		w.print(d);
 		t();
 		d=",";
 		visit(std);
-	  }
-	  for(VarDecl vd:p.varDecls){
-		w.print(d);
-		t();
-		d=",";
-		visit(vd);
-	  }
-	  for(FunDecl fd:p.funDecls){
-		w.print(d);
-		t();
-		d=",";
-		visit(fd);
 	  }
 	  t--;
 	  t();

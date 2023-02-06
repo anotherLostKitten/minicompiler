@@ -20,11 +20,7 @@ public class DotPrinter{
 	  throw new IllegalStateException("Unexpected null value");
 	case Program p->{
 	  w.println("digraph ast {");
-	  for(StructTypeDecl std:p.structTypeDecls)
-		visit(std);
-	  for(VarDecl vd:p.varDecls)
-		visit(vd);
-	  for(FunDecl fd:p.funDecls)
+	  for(Decl fd:p.decls)
 		visit(fd);
 	  w.println("}");
 	  w.flush();
