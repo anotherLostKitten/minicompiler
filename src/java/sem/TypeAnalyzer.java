@@ -4,7 +4,7 @@ import ast.BinOp.Op;
 import java.util.Map;
 import java.util.HashMap;
 public class TypeAnalyzer extends BaseSemanticAnalyzer{
-  private Type frt;
+  private Type frt=BaseType.UNKNOWN;
   private Map<String,Map<String,Type>>structs;
   public Type visit(ASTNode node){
 	return switch(node){
@@ -21,7 +21,21 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 		visit(fd);
 	  yield BaseType.NONE;
 	}
-	case Type t->t;//todo probably want to recurse to ensure structs defined...
+	case BaseType t->t;
+	case PointerType t->{
+	  visit(t.type);
+	  yield t;
+	}
+	case StructType t->{
+	  if(structs.containsKey(t.name))
+		yield t;
+	  error("StructType references undefined struct "+t.name);
+	  yield BaseType.UNKNOWN;
+	}
+	case ArrayType t->{
+	  visit(t.type);
+	  yield t;
+	}
 	case StructTypeDecl std->{
 	  Map<String,Type>vs=new HashMap<String,Type>();
 	  for(VarDecl vd:std.vs){
@@ -44,7 +58,7 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 		if(t==BaseType.VOID)
 		  error("VarDecl void type "+vd.name);
 	  }
-	  case default->{}
+	  case Type t->{visit(t);}
 	  }
 	  yield BaseType.NONE;
 	}
@@ -54,12 +68,13 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 		if(!structs.containsKey(t.name))
 		  error("FunDecl "+fd.name+" returns undefined struct "+t.name);
 	  }
-	  case default->{}
+	  case Type t->{visit(t);}
 	  }
 	  for(VarDecl vd:fd.params)
 		visit(vd);
 	  frt=fd.type;
 	  visit(fd.block);
+	  frt=BaseType.UNKNOWN;
 	  yield BaseType.NONE;
 	}
 	case IntLiteral i->{
@@ -178,13 +193,13 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 		if(!structs.containsKey(t.name))
 		  error("SizeOfExpr cannot find struct "+t.name);
 	  }
-	  case default->{}
+	  case Type t->{visit(t);}
 	  }
 	  yield BaseType.INT;
 	}
 	case TypecastExpr tc->{
 	  visit(tc.e);
-	  visit(tc.t);//todo structs?
+	  visit(tc.t);
 	  tc.type=switch(tc.t){
 	  case BaseType b->{
 		if(b==BaseType.INT&&tc.e.type==BaseType.CHAR)
@@ -244,12 +259,20 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  yield BaseType.NONE;
 	}
 	case Return r->{
-	  //todo get current function
+	  if(r.e==null){
+		if(frt!=BaseType.VOID)
+		  error("Return expected an expression");
+	  }else{
+		if(!frt.equals(visit(r.e)))
+		  error("Return type does not match function header");
+	  }
 	  yield BaseType.NONE;
 	}
 	case Block b->{
-	  for(ASTNode c:b.children())
-		visit(c);
+	  for(VarDecl v:b.vds)
+		visit(v);
+	  for(Stmt s:b.stmts)
+		visit(s);
 	  yield BaseType.NONE;
 	}
 	};
