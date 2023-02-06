@@ -9,12 +9,10 @@ public enum BaseType implements Type{
   }
   public boolean equals(Type t2){
 	return switch(t2){
-	case BaseType b->{
-	  yield b==this&&b!=UNKNOWN&&t2!=UNKNOWN;
-	}
-	case default->{
-	  yield false;
-	}
+	case BaseType b->
+	  b==this&&b!=UNKNOWN;
+	case default->
+	  false;
 	};
   }
 }

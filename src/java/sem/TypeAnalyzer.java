@@ -1,27 +1,67 @@
 package sem;
 import ast.*;
 import ast.BinOp.Op;
+import java.util.Map;
+import java.util.HashMap;
 public class TypeAnalyzer extends BaseSemanticAnalyzer{
+  private Type frt;
+  private Map<String,Map<String,Type>>structs;
   public Type visit(ASTNode node){
 	return switch(node){
 	case null->{
 	  throw new IllegalStateException("Unexpected null value");
 	}
 	case Program p->{
-	  //todo
+	  structs=new HashMap<String,Map<String,Type>>();
+	  for(StructTypeDecl std:p.structTypeDecls)
+		visit(std);
+	  for(VarDecl vd:p.varDecls)
+		visit(vd);
+	  for(FunDecl fd:p.funDecls)
+		visit(fd);
 	  yield BaseType.NONE;
 	}
-	case Type t->{yield t;}
+	case Type t->t;//todo probably want to recurse to ensure structs defined...
 	case StructTypeDecl std->{
-	  //todo
+	  Map<String,Type>vs=new HashMap<String,Type>();
+	  for(VarDecl vd:std.vs){
+		visit(vd);
+		vs.put(vd.name,vd.type);//assumes name analysis passed
+	  }
+	  if(structs.containsKey(std.type.name))
+		error("StructTypeDecl struct name in use");
+	  else
+		structs.put(std.type.name,vs);
 	  yield BaseType.NONE;
 	}
 	case VarDecl vd->{
-	  if(vd.type==BaseType.VOID)
-		error("VarDecl void type "+vd);
+	  switch(vd.type){
+	  case StructType t->{
+		if(!structs.containsKey(t.name))
+		  error("VarDecl "+vd.name+" references undefined struct "+t.name);
+	  }
+	  case BaseType t->{
+		if(t==BaseType.VOID)
+		  error("VarDecl void type "+vd.name);
+	  }
+	  case default->{}
+	  }
 	  yield BaseType.NONE;
 	}
-	case FunDecl fd->{yield BaseType.NONE;}
+	case FunDecl fd->{
+	  switch(fd.type){
+	  case StructType t->{
+		if(!structs.containsKey(t.name))
+		  error("FunDecl "+fd.name+" returns undefined struct "+t.name);
+	  }
+	  case default->{}
+	  }
+	  for(VarDecl vd:fd.params)
+		visit(vd);
+	  frt=fd.type;
+	  visit(fd.block);
+	  yield BaseType.NONE;
+	}
 	case IntLiteral i->{
 	  i.type=BaseType.INT;
 	  yield i.type;
@@ -64,32 +104,152 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  case NE,EQ->{
 		visit(bo.lhs);
 		visit(bo.rhs);
-		if(bo.lhs.type instanceof StructType||bo.lhs.type instanceof ArrayType||bo.lhs.type==BaseType.VOID||!bo.lhs.type.equals(bo.rhs.type))
-			yield BaseType.UNKNOWN;
-		yield BaseType.INT;
+		if(!(bo.lhs.type instanceof StructType)&&!(bo.lhs.type instanceof ArrayType)||bo.lhs.type!=BaseType.VOID&&bo.lhs.type.equals(bo.rhs.type))
+			yield BaseType.INT;
+		error("BinOp invalid NE/EQ case");
+		yield BaseType.UNKNOWN;
 	  }
 	  case default->{
 		if(visit(bo.lhs)==BaseType.INT&&visit(bo.rhs)==BaseType.INT)
 		  yield BaseType.INT;
+		error("BinOp invalid integer operator case");
 		yield BaseType.UNKNOWN;
 	  }
 	  };
 	  yield bo.type;
 	}
-	case ArrayAccessExpr ra->{yield BaseType.NONE;}
-	case FieldAccessExpr fa->{yield BaseType.NONE;}
-	case ValueAtExpr va->{yield BaseType.NONE;}
-	case AddressOfExpr ao->{yield BaseType.NONE;}
-	case SizeOfExpr so->{yield BaseType.NONE;}
-	case TypecastExpr tc->{yield BaseType.NONE;}
-	case Assign as->{yield BaseType.NONE;}
-	case ExprStmt es->{yield BaseType.NONE;}
-	case While w->{yield BaseType.NONE;}
-	case If ie->{yield BaseType.NONE;}
-	case Return r->{yield BaseType.NONE;}
+	case ArrayAccessExpr ra->{
+	  ra.type=switch(visit(ra.arr)){
+	  case ArrayType t->t.type;
+	  case PointerType t->t.type;
+	  case default->{
+		error("ArrayAccessExpr invalid not array/pointer");
+		yield BaseType.UNKNOWN;
+	  }
+	  };
+	  if(visit(ra.ind)!=BaseType.INT){
+		error("ArrayAccessExpr invalid not int index");
+		ra.type=BaseType.UNKNOWN;
+	  }
+	  yield ra.type;
+	}
+	case FieldAccessExpr fa->{
+	  fa.type=switch(visit(fa.struct)){
+	  case StructType t->{
+		Map<String,Type>vs=structs.get(t.name);
+		if(vs==null){
+		  error("FieldAccessExpr struct undefined "+t.name);
+		  yield BaseType.UNKNOWN;
+		}
+		Type ft=vs.get(fa.field);
+		if(ft!=null)
+		  yield ft;
+		error("FieldAccessExpr undefined field <"+t.name+">."+fa.field);
+		yield BaseType.UNKNOWN;
+	  }
+	  case default->{
+		error("FieldAccessExpr not a struct");
+		yield BaseType.UNKNOWN;
+	  }
+	  };
+	  yield fa.type;
+	}
+	case ValueAtExpr va->{
+	  va.type=switch(visit(va.e)){
+	  case PointerType t->t.type;
+	  case default->{
+		error("ValueAtExpr invalid not pointer");
+		yield BaseType.UNKNOWN;
+	  }
+	  };
+	  yield va.type;
+	}
+	case AddressOfExpr ao->{
+	  if(visit(ao.e)==BaseType.UNKNOWN){
+		ao.type=BaseType.UNKNOWN;
+		error("AddressOfExpr invalid unknown type");
+	  }else
+		ao.type=new PointerType(ao.e.type);
+	  yield ao.type;
+	}
+	case SizeOfExpr so->{
+	  switch(so.type){
+	  case StructType t->{
+		if(!structs.containsKey(t.name))
+		  error("SizeOfExpr cannot find struct "+t.name);
+	  }
+	  case default->{}
+	  }
+	  yield BaseType.INT;
+	}
+	case TypecastExpr tc->{
+	  visit(tc.e);
+	  visit(tc.t);//todo structs?
+	  tc.type=switch(tc.t){
+	  case BaseType b->{
+		if(b==BaseType.INT&&tc.e.type==BaseType.CHAR)
+		  yield BaseType.INT;
+		error("TypecastExpr BaseType must be (int)char");
+		yield BaseType.UNKNOWN;
+	  }
+	  case PointerType pt->{
+		yield switch(tc.t){
+		case ArrayType af->{
+		  if(af.type.equals(pt.type))
+			yield pt;
+		  error("TypeCastExpr (T1*)T2[], T1!=T2");
+		  yield BaseType.UNKNOWN;
+		}
+		case PointerType pf->
+		  pt;
+		case default->{
+		  error("TypeCastExpr cannot cast this type into pointer");
+		  yield BaseType.UNKNOWN;
+		}
+		};
+	  }
+	  case default->{
+		error("TypecastExpr cannot cast to this type");
+		yield BaseType.UNKNOWN;
+	  }
+	  };
+	  yield tc.type;
+	}
+	case Assign as->{
+	  visit(as.lhs);
+	  visit(as.rhs);
+	  if(as.lhs.type==BaseType.VOID||as.lhs.type instanceof ArrayType||!as.lhs.type.equals(as.rhs.type)){
+		error("Assign invalid types");
+		as.type=BaseType.UNKNOWN;
+	  }else
+		as.type=as.lhs.type;
+	  yield as.type;
+	}
+	case ExprStmt es->{
+	  visit(es.e);
+	  yield BaseType.NONE;
+	}
+	case While w->{
+	  visit(w.y);
+	  if(visit(w.c)!=BaseType.INT)
+		error("While condition not int");
+	  yield BaseType.NONE;
+	}
+	case If ie->{
+	  visit(ie.y);
+	  if(ie.n!=null)
+		visit(ie.n);
+	  if(visit(ie.c)!=BaseType.INT)
+		error("If condition not int");
+	  yield BaseType.NONE;
+	}
+	case Return r->{
+	  //todo get current function
+	  yield BaseType.NONE;
+	}
 	case Block b->{
 	  for(ASTNode c:b.children())
-		visit(b);
+		visit(c);
 	  yield BaseType.NONE;
 	}
 	};

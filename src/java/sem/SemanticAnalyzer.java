@@ -5,9 +5,11 @@ public class SemanticAnalyzer{
 	NameAnalyzer na=new NameAnalyzer();
 	na.visit(prog);
 	errors+=na.getErrorCount();
-	TypeAnalyzer tc=new TypeAnalyzer();
-	tc.visit(prog);
-	errors+=tc.getErrorCount();
+	if(errors==0){
+	  TypeAnalyzer tc=new TypeAnalyzer();
+	  tc.visit(prog);
+	  errors+=tc.getErrorCount();
+	}
 	//todo
 	return errors;
   }

@@ -11,12 +11,10 @@ public final class StructType implements Type{
   }
   public boolean equals(Type t2){
 	return switch(t2){
-	case StructType b->{
-	  yield b.name.equals(this.name);
-	}
-	case default->{
-	  yield false;
-	}
+	case StructType b->
+	  b.name.equals(this.name);
+	case default->
+	  false;
 	};
   }
 }
