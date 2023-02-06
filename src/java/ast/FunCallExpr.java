@@ -8,6 +8,7 @@ public final class FunCallExpr extends Expr{
   public FunCallExpr(String f,List<Expr>args){
 	this.f=f;
 	this.args=args;
+	this.fd=null;
   }
   public List<ASTNode>children(){
 	List<ASTNode>children=new ArrayList<ASTNode>();

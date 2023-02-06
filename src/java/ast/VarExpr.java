@@ -6,6 +6,7 @@ public final class VarExpr extends Expr{
   public VarDecl vd;
   public VarExpr(String name){
 	this.name=name;
+	this.vd=null;
   }
   public List<ASTNode>children(){
 	return new ArrayList<ASTNode>();

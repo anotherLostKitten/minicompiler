@@ -13,4 +13,14 @@ public final class ArrayType implements Type{
 	children.add(type);
 	return children;
   }
+  public boolean equals(Type t2){
+	return switch(t2){
+	case ArrayType b->{
+	  yield b.num==this.num&&b.type.equals(this.type);
+	}
+	case default->{
+	  yield false;
+	}
+	};
+  }
 }

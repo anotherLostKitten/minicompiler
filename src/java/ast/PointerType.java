@@ -11,4 +11,14 @@ public final class PointerType implements Type{
 	children.add(type);
 	return children;
   }
+  public boolean equals(Type t2){
+	return switch(t2){
+	case PointerType b->{
+	  yield b.type.equals(this.type);
+	}
+	case default->{
+	  yield false;
+	}
+	};
+  }
 }

@@ -9,4 +9,14 @@ public final class StructType implements Type{
   public List<ASTNode>children(){
 	return new ArrayList<ASTNode>();
   }
+  public boolean equals(Type t2){
+	return switch(t2){
+	case StructType b->{
+	  yield b.name.equals(this.name);
+	}
+	case default->{
+	  yield false;
+	}
+	};
+  }
 }

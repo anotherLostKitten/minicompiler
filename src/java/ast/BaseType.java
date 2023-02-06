@@ -7,4 +7,14 @@ public enum BaseType implements Type{
   public List<ASTNode>children(){
 	return new ArrayList<ASTNode>();
   }
+  public boolean equals(Type t2){
+	return switch(t2){
+	case BaseType b->{
+	  yield b==this&&b!=UNKNOWN&&t2!=UNKNOWN;
+	}
+	case default->{
+	  yield false;
+	}
+	};
+  }
 }
