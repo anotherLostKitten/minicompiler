@@ -17,8 +17,10 @@ void main(){
 	&hello=' ';
 	*duck.thing=something+anotherthing*hello/4;
   }
-  if(scooby)e;
-  else
+  if(scooby)
 	e;
   else
- }
+	e;
+  duck();
+  main=3;
+}
