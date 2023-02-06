@@ -1,4 +1,5 @@
 import ast.ASTPrinter;
+import ast.DotPrinter;
 import ast.Program;
 import lexer.Scanner;
 import lexer.Token;
@@ -26,7 +27,7 @@ public class Main {
     private static final int PASS           = 0;
     
     private enum Mode {
-        LEXER, PARSER, AST, SEMANTICANALYSIS
+	  LEXER, PARSER, AST, SEMANTICANALYSIS, DOT
     }
 
     private static void usage() {
@@ -57,6 +58,9 @@ public class Main {
             case "-sem":
                 mode = Mode.SEMANTICANALYSIS;
                 break;
+		case "-dot":
+		  mode=Mode.DOT;
+		  break;
             default:
                 usage();
                 break;
@@ -107,6 +111,20 @@ public class Main {
                 System.out.println("Parsing: failed (" + parser.getErrorCount() + " errors)");
             System.exit(parser.getErrorCount() == 0 ? PASS : PARSER_FAIL);
         }
+
+		else if(mode==Mode.DOT){
+		  Parser p=new Parser(tokeniser);
+		  Program ast=p.parse();
+		  if(p.getErrorCount()==0){
+			File of=new File(args[2]);
+			PrintWriter w=new PrintWriter(of);
+			new DotPrinter(w).visit(ast);
+			w.print("\n");
+			w.close();
+		  }else
+			System.out.println("Parsing: failed ("+p.getErrorCount()+" errors)");
+		  System.exit(p.getErrorCount()>0?PARSER_FAIL:PASS);
+		}
 
         else if (mode == Mode.SEMANTICANALYSIS) {
             Parser parser = new Parser(tokeniser);

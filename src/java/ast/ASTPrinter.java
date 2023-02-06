@@ -1,207 +1,207 @@
 package ast;
 import java.io.PrintWriter;
 public class ASTPrinter{
-  private final PrintWriter writer;
+  private final PrintWriter w;
   private int t;
-  public ASTPrinter(PrintWriter writer){
-	this.writer=writer;
+  public ASTPrinter(PrintWriter w){
+	this.w=w;
 	this.t=0;
   }
   private void t(){
-	writer.print("\n");
+	w.print("\n");
 	for(int i=0;i<t;i++)
-	  writer.print("  ");
+	  w.print("  ");
   }
   public void visit(ASTNode node){
 	switch(node){
 	case null->
 	  throw new IllegalStateException("Unexpected null value");
 	case Program p->{
-	  writer.print("Program(");
+	  w.print("Program(");
 	  t++;
 	  String d="";
 	  for(StructTypeDecl std:p.structTypeDecls){
-		writer.print(d);
+		w.print(d);
 		t();
 		d=",";
 		visit(std);
 	  }
 	  for(VarDecl vd:p.varDecls){
-		writer.print(d);
+		w.print(d);
 		t();
 		d=",";
 		visit(vd);
 	  }
 	  for(FunDecl fd:p.funDecls){
-		writer.print(d);
+		w.print(d);
 		t();
 		d=",";
 		visit(fd);
 	  }
 	  t--;
 	  t();
-	  writer.print(")");
-	  writer.flush();
+	  w.print(")");
+	  w.flush();
 	}
 	case BaseType t->
-	  writer.print(t);
+	  w.print(t);
 	case PointerType t->{
-	  writer.print("PointerType(");
+	  w.print("PointerType(");
 	  visit(t.type);
-	  writer.print(")");
+	  w.print(")");
 	}
 	case StructType t->
-	  writer.print("StructType("+t.name+")");
+	  w.print("StructType("+t.name+")");
 	case ArrayType t->{
-	  writer.print("ArrayType(");
+	  w.print("ArrayType(");
 	  visit(t.type);
-	  writer.print(t.num);
-	  writer.print(")");
+	  w.print(t.num);
+	  w.print(")");
 	}
 	case StructTypeDecl std->{
-	  writer.print("StructTypeDecl(");
+	  w.print("StructTypeDecl(");
 	  visit(std.type);
 	  t++;
 	  for(VarDecl vd:std.vs){
-		writer.print(",");
+		w.print(",");
 		t();
 		visit(vd);
 	  }
 	  t--;
 	  t();
-	  writer.print(")");
+	  w.print(")");
 	}
 	case VarDecl vd->{
-	  writer.print("VarDecl(");
+	  w.print("VarDecl(");
 	  visit(vd.type);
-	  writer.print(","+vd.name+")");
+	  w.print(","+vd.name+")");
 	}
 	case FunDecl fd->{
-	  writer.print("FunDecl(");
+	  w.print("FunDecl(");
 	  visit(fd.type);
-	  writer.print(","+fd.name+",");
+	  w.print(","+fd.name+",");
 	  for(VarDecl vd:fd.params){
 		visit(vd);
-		writer.print(",");
+		w.print(",");
 	  }
 	  visit(fd.block);
-	  writer.print(")");
+	  w.print(")");
 	}
 	case IntLiteral i->
-	  writer.print("IntLiteral("+i.v+")");
+	  w.print("IntLiteral("+i.v+")");
 	case StrLiteral s->
-	  writer.print("StrLiteral("+s.v+")");
+	  w.print("StrLiteral("+s.v+")");
 	case ChrLiteral c->
-	  writer.print("ChrLiteral("+c.v+")");
+	  w.print("ChrLiteral("+c.v+")");
 	case VarExpr v->
-	  writer.print("VarExpr("+v.name+")");
+	  w.print("VarExpr("+v.name+")");
 	case FunCallExpr fc->{
-	  writer.print("FunCallExpr("+fc.f);
+	  w.print("FunCallExpr("+fc.f);
 	  for(Expr r:fc.args){
-		writer.print(",");
+		w.print(",");
 		visit(r);
 	  }
-	  writer.print(")");
+	  w.print(")");
 	}
 	case BinOp bo->{
-	  writer.print("BinOp(");
+	  w.print("BinOp(");
 	  visit(bo.lhs);
-	  writer.print(","+bo.op+",");
+	  w.print(","+bo.op+",");
 	  visit(bo.rhs);
-	  writer.print(")");
+	  w.print(")");
 	}
 	case ArrayAccessExpr ra->{
-	  writer.print("ArrayAccessExpr(");
+	  w.print("ArrayAccessExpr(");
 	  visit(ra.arr);
-	  writer.print(",");
+	  w.print(",");
 	  visit(ra.ind);
-	  writer.print(")");
+	  w.print(")");
 	}
 	case FieldAccessExpr fa->{
-	  writer.print("FieldAccessExpr(");
+	  w.print("FieldAccessExpr(");
 	  visit(fa.struct);
-	  writer.print(","+fa.field+")");
+	  w.print(","+fa.field+")");
 	}
 	case ValueAtExpr va->{
-	  writer.print("ValueAtExpr(");
+	  w.print("ValueAtExpr(");
 	  visit(va.e);
-	  writer.print(")");
+	  w.print(")");
 	}
 	case AddressOfExpr ao->{
-	  writer.print("AddressOfExpr(");
+	  w.print("AddressOfExpr(");
 	  visit(ao.e);
-	  writer.print(")");
+	  w.print(")");
 	}
 	case SizeOfExpr so->{
-	  writer.print("SizeOfExpr(");
+	  w.print("SizeOfExpr(");
 	  visit(so.t);
-	  writer.print(")");
+	  w.print(")");
 	}
 	case TypecastExpr tc->{
-	  writer.print("TypecastExpr(");
+	  w.print("TypecastExpr(");
 	  visit(tc.t);
-	  writer.print(",");
+	  w.print(",");
 	  visit(tc.e);
-	  writer.print(")");
+	  w.print(")");
 	}
 	case Assign as->{
-	  writer.print("Assign(");
+	  w.print("Assign(");
 	  visit(as.lhs);
-	  writer.print(",");
+	  w.print(",");
 	  visit(as.rhs);
-	  writer.print(")");
+	  w.print(")");
 	}
 	case ExprStmt es->{
-	  writer.print("ExprStmt(");
+	  w.print("ExprStmt(");
 	  visit(es.e);
-	  writer.print(")");
+	  w.print(")");
 	}
-	case While w->{
-	  writer.print("While(");
-	  visit(w.c);
-	  writer.print(",");
+	case While wh->{
+	  w.print("While(");
+	  visit(wh.c);
+	  w.print(",");
 	  t++;
 	  t();
-	  visit(w.y);
+	  visit(wh.y);
 	  t--;
 	  t();
-	  writer.print(")");
+	  w.print(")");
 	}
 	case If ie->{
-	  writer.print("If(");
+	  w.print("If(");
 	  visit(ie.c);
-	  writer.print(",");
+	  w.print(",");
 	  t++;
 	  t();
 	  visit(ie.y);
 	  if(ie.n!=null){
-		writer.print(",");
+		w.print(",");
 		t();
 		visit(ie.n);
 	  }
 	  t--;
 	  t();
-	  writer.print(")");
+	  w.print(")");
 	}
 	case Return r->{
-	  writer.print("Return(");
+	  w.print("Return(");
 	  if(r.e!=null)
 		visit(r.e);
-	  writer.print(")");
+	  w.print(")");
 	}
 	case Block b->{
-	  writer.print("Block(");
+	  w.print("Block(");
 	  String d="";
 	  t++;
 	  for(ASTNode n:b.children()){
-		writer.print(d);
+		w.print(d);
 		t();
 		d=",";
 		visit(n);
 	  }
 	  t--;
 	  t();
-	  writer.print(")");
+	  w.print(")");
 	}
 	}
   }
