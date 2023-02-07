@@ -10,7 +10,11 @@ public class SemanticAnalyzer{
 	  tc.visit(prog);
 	  errors+=tc.getErrorCount();
 	}
-	//todo
+	if(errors==0){
+	  LvalAnalyzer lv=new LvalAnalyzer();
+	  lv.visit(prog);
+	  errors+=lv.getErrorCount();
+	}
 	return errors;
   }
 }

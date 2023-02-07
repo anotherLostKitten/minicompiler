@@ -184,13 +184,13 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  yield ao.type;
 	}
 	case SizeOfExpr so->{
-	  switch(so.type){
+	  switch(so.t){
 	  case StructType t->{
 		if(!structs.containsKey(t.name))
 		  error("SizeOfExpr cannot find struct "+t.name);
 	  }
-	  case Type t->{visit(t);}
-	  }
+	  case Type t->visit(t);
+	  };
 	  yield BaseType.INT;
 	}
 	case TypecastExpr tc->{
