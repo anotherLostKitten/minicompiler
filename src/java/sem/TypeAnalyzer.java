@@ -115,7 +115,7 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  case NE,EQ->{
 		visit(bo.lhs);
 		visit(bo.rhs);
-		if(!(bo.lhs.type instanceof StructType)&&!(bo.lhs.type instanceof ArrayType)||bo.lhs.type!=BaseType.VOID&&bo.lhs.type.equals(bo.rhs.type))
+		if(!(bo.lhs.type instanceof StructType)&&!(bo.lhs.type instanceof ArrayType)&&bo.lhs.type!=BaseType.VOID&&bo.lhs.type.equals(bo.rhs.type))
 			yield BaseType.INT;
 		error("BinOp invalid NE/EQ case");
 		yield BaseType.UNKNOWN;
@@ -184,14 +184,21 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  yield ao.type;
 	}
 	case SizeOfExpr so->{
-	  switch(so.t){
+	  so.type=switch(so.t){
 	  case StructType t->{
-		if(!structs.containsKey(t.name))
-		  error("SizeOfExpr cannot find struct "+t.name);
+		if(structs.containsKey(t.name))
+		  yield BaseType.INT;
+		error("SizeOfExpr cannot find struct "+t.name);
+		yield BaseType.UNKNOWN;
 	  }
-	  case Type t->visit(t);
+	  case Type t->{
+		if(visit(t)!=BaseType.UNKNOWN)
+		  yield BaseType.INT;
+		error("SizeOfExpr unknown type");
+		yield BaseType.UNKNOWN;
+	  }
 	  };
-	  yield BaseType.INT;
+	  yield so.type;
 	}
 	case TypecastExpr tc->{
 	  visit(tc.e);
