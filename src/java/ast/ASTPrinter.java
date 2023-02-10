@@ -43,8 +43,7 @@ public class ASTPrinter{
 	case ArrayType t->{
 	  w.print("ArrayType(");
 	  visit(t.type);
-	  w.print(t.num);
-	  w.print(")");
+	  w.print(","+t.num+")");
 	}
 	case StructTypeDecl std->{
 	  w.print("StructTypeDecl(");
