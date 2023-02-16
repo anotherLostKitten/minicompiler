@@ -119,17 +119,20 @@ public class Parser{
 	return parseVararr(t,s);
   }
   private VarDecl parseVararr(Type t,String s){
-	while(accept(TokenClass.LSBR)){
+	return new VarDecl(parseVararrtype(t),s);
+  }
+  private Type parseVararrtype(Type t){
+	if(accept(TokenClass.LSBR)){
 	  nextToken();
 	  int n=Integer.MIN_VALUE;//can't be negative b/c "-" seperate token
 	  if(accept(TokenClass.INT_LITERAL))
 		n=Integer.parseInt(token.data);
 	  expect(TokenClass.INT_LITERAL);
 	  expect(TokenClass.RSBR);
-	  t=new ArrayType(t,n);
+	  return new ArrayType(parseVararrtype(t),n);
 	}
 	expect(TokenClass.SC);
-	return new VarDecl(t,s);
+	return t;
   }
   private Type parseType(){
 	Type t=BaseType.UNKNOWN;
