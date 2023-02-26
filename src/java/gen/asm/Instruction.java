@@ -211,8 +211,8 @@ public abstract sealed class Instruction extends AssemblyItem{
 	public List<Register>uses(){
 	  return List.of(src);
 	}
-	public UnaryBranch rebuild(Map<Register Register>regMap){
-	  return new UnaryBranch((OpCode.UnaryBranch) opcode,regMap.getOrDefault(src, src),label);
+	public UnaryBranch rebuild(Map<Register,Register>regMap){
+	  return new UnaryBranch((OpCode.UnaryBranch)opcode,regMap.getOrDefault(src,src),label);
 	}
 	@Override
 	public boolean equals(Object o){
