@@ -5,14 +5,14 @@ import java.util.Map;
 import java.util.HashMap;
 public class TypeAnalyzer extends BaseSemanticAnalyzer{
   private Type frt=BaseType.UNKNOWN;
-  private Map<String,Map<String,Type>>structs;
+  private Map<String,StructTypeDecl>structs;
   public Type visit(ASTNode node){
 	return switch(node){
 	case null->{
 	  throw new IllegalStateException("Unexpected null value");
 	}
 	case Program p->{
-	  structs=new HashMap<String,Map<String,Type>>();
+	  structs=new HashMap<String,StructTypeDecl>();
 	  for(Decl d:p.decls)
 		visit(d);
 	  yield BaseType.NONE;
@@ -23,7 +23,7 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  yield t;
 	}
 	case StructType t->{
-	  if(structs.containsKey(t.name))
+	  if((t.decl=structs.get(t.name))!=null)
 		yield t;
 	  error("StructType references undefined struct "+t.name);
 	  yield BaseType.UNKNOWN;
@@ -33,23 +33,19 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  yield t;
 	}
 	case StructTypeDecl std->{
-	  Map<String,Type>vs=new HashMap<String,Type>();
+	  std.vst=new HashMap<String,Type>();
 	  for(VarDecl vd:std.vs){
 		visit(vd);
-		vs.put(vd.name,vd.type);//assumes name analysis passed
+		std.vst.put(vd.name,vd.type);//assumes name analysis passed
 	  }
 	  if(structs.containsKey(std.type.name))
 		error("StructTypeDecl struct name in use");
 	  else
-		structs.put(std.type.name,vs);
+		structs.put(std.type.name,std);
 	  yield BaseType.NONE;
 	}
 	case VarDecl vd->{
 	  switch(vd.type){
-	  case StructType t->{
-		if(!structs.containsKey(t.name))
-		  error("VarDecl "+vd.name+" references undefined struct "+t.name);
-	  }
 	  case BaseType t->{
 		if(t==BaseType.VOID)
 		  error("VarDecl void type "+vd.name);
@@ -59,16 +55,9 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  yield BaseType.NONE;
 	}
 	case FunDecl fd->{
-	  switch(fd.type){
-	  case StructType t->{
-		if(!structs.containsKey(t.name))
-		  error("FunDecl "+fd.name+" returns undefined struct "+t.name);
-	  }
-	  case Type t->{visit(t);}
-	  }
+	  frt=visit(fd.type);
 	  for(VarDecl vd:fd.params)
 		visit(vd);
-	  frt=fd.type;
 	  visit(fd.block);
 	  frt=BaseType.UNKNOWN;
 	  yield BaseType.NONE;
@@ -147,12 +136,11 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	case FieldAccessExpr fa->{
 	  fa.type=switch(visit(fa.struct)){
 	  case StructType t->{
-		Map<String,Type>vs=structs.get(t.name);
-		if(vs==null){
+		if(t.decl==null){
 		  error("FieldAccessExpr struct undefined "+t.name);
 		  yield BaseType.UNKNOWN;
 		}
-		Type ft=vs.get(fa.field);
+		Type ft=t.decl.vst.get(fa.field);
 		if(ft!=null)
 		  yield ft;
 		error("FieldAccessExpr undefined field <"+t.name+">."+fa.field);
@@ -184,20 +172,12 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  yield ao.type;
 	}
 	case SizeOfExpr so->{
-	  so.type=switch(so.t){
-	  case StructType t->{
-		if(structs.containsKey(t.name))
-		  yield BaseType.INT;
-		error("SizeOfExpr cannot find struct "+t.name);
-		yield BaseType.UNKNOWN;
-	  }
-	  case Type t->{
-		if(visit(t)!=BaseType.UNKNOWN)
-		  yield BaseType.INT;
+	  if(visit(so.t)!=BaseType.UNKNOWN)
+		so.type=BaseType.INT;
+	  else{
 		error("SizeOfExpr unknown type");
-		yield BaseType.UNKNOWN;
+		so.type=BaseType.UNKNOWN;
 	  }
-	  };
 	  yield so.type;
 	}
 	case TypecastExpr tc->{

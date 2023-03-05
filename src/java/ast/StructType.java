@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 public final class StructType implements Type{
   public final String name;
+  public StructTypeDecl decl;
   public StructType(String name){
 	this.name=name;
   }

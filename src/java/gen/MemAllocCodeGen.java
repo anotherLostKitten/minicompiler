@@ -1,7 +1,7 @@
 package gen;
 import ast.ASTNode;
 import gen.asm.AssemblyProgram;
-//allocator to with global & local variable decls
+//allocator for global & local variable decls
 public class MemAllocCodeGen extends CodeGen{
   public MemAllocCodeGen(AssemblyProgram asmProg){
 	this.asmProg=asmProg;

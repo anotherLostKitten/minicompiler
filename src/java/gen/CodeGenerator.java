@@ -14,8 +14,7 @@ import java.io.PrintWriter;
 public final class CodeGenerator{
   /**
    * Creates a code generator that relies on the default register allocator.
-   * @implNote To use your custom register allocator by default, replace {@code NaiveRegAlloc.INSTANCE} with an
-   * instance of your register allocator pass for part 4.
+   * @impl Note To use your custom register allocator by default, replace {@code NaiveRegAlloc.INSTANCE} with an instance of your register allocator pass for part 4.
    */
   public CodeGenerator(){
 	this.registerAllocator=NaiveRegAlloc.INSTANCE;
@@ -32,12 +31,10 @@ public final class CodeGenerator{
    */
   public final AssemblyPass registerAllocator;
   /**
-   * Takes a Mini C program as an AST, turns it into a MIPS program, and writes a textual representation of that
-   * program to a file.
+   * Takes a Mini C program as an AST, turns it into a MIPS program, and writes a textual representation of that program to a file.
    * @param astProgram The Mini C program to turn into MIPS instructions.
    * @param outputFile The output file to write MIPS assembly code to.
-   * @throws FileNotFoundException If {@code outputFile} does not denote an existing, writable regular file and a new
-   * regular file of that name cannot be created, or if some other error occurs while opening or creating the file.
+   * @throws FileNotFoundException If {@code outputFile} does not denote an existing, writable regular file and a new regular file of that name cannot be created, or if some other error occurs while opening or creating the file.
    */
   public void emitProgram(Program astProgram,File outputFile)throws FileNotFoundException{
 	AssemblyProgram asmProgWithVirtualRegs=new AssemblyProgram();

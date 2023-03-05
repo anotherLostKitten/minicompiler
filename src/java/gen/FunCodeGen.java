@@ -9,12 +9,12 @@ public class FunCodeGen extends CodeGen{
 	this.asmProg=asmProg;
   }
   void visit(FunDecl fd){
-	//each function produced in own section; necessary for register allocator.
+	//each function produced in own section; necessary for register allocator
 	asmProg.newSection(AssemblyProgram.Section.Type.TEXT);
-	//todo emit the prolog
-	//todo emit the body of the function
+	//todo emit prologue
+	//todo emit function body
 	StmtCodeGen scd = new StmtCodeGen(asmProg);
 	scd.visit(fd.block);
-	//todo emit the epilog
+	//todo emit epilogue
   }
 }
