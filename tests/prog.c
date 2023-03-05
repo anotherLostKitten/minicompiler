@@ -3,17 +3,33 @@ void foo(){
   return*v;
 }
 
-struct str {
-  int a;
-  void*g;
-  void****q[100];
-  int*b[10];
-  struct str*p[10];
-  struct str*rl;
-  struct str rl[4][10];
+struct small{
+  char a;
+  char b;
+  char c[2];
+};
+struct big{
+  int int_var;
+  char*char_star_var;
+  void*void_star_arr_var[100];
+  int*int_star_arr_var[10];
+  char char_arr_var[10];
+  char char_var;
+  char char_arr_arr_var[5][11];
+  struct small small_struct_arr_var[3];
 };
 
-struct str d;
+int int_var;
+char*char_star_var;
+void*void_star_arr_var[100];
+int*int_star_arr_var[10];
+char char_arr_var[10];
+char char_var;
+char char_arr_arr_var[5][11];
+struct small small_struct_arr_var[3];
+
+struct small small_struct;
+struct big big_struct;
 
 void bar(){
   return foo();

@@ -127,7 +127,7 @@ public final class AssemblyProgram{
 	}
   }
   private Section currSection;
-  public final List<Section> sections=new ArrayList<>();
+  public final List<Section>sections=new ArrayList<>();
   /**
    * Gets the current section. That is, the section that was last added to this {@link AssemblyProgram}.
    * @return This program's current section.
@@ -136,8 +136,7 @@ public final class AssemblyProgram{
 	return currSection;
   }
   /**
-   * Appends a given section to this program. The section will become the current section, as produced by
-   * {@link #getCurrentSection()}.
+   * Appends a given section to this program. The section will become the current section, as produced by {@link #getCurrentSection()}.
    * @param section The section to append to this program.
    */
   public void emitSection(Section section){

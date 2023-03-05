@@ -1,20 +1,23 @@
 package gen;
-import ast.Block;
-import ast.Stmt;
+import ast.*;
 import gen.asm.AssemblyProgram;
 public class StmtCodeGen extends CodeGen{
-    public StmtCodeGen(AssemblyProgram asmProg){
-        this.asmProg=asmProg;
-    }
-    void visit(Stmt s){
-        switch (s){
-            case Block b->{
-                //need not handle varDecl (memory allocator takes care of them)
-                b.stmts.forEach((innerStmt)->{
-                    visit(innerStmt);
-                });
-            }
-            //todo
-        }
-    }
+  public StmtCodeGen(AssemblyProgram asmProg){
+	this.asmProg=asmProg;
+  }
+  void visit(Stmt s){
+	switch(s){
+	case Block b->{
+	  //need not handle varDecl (memory allocator takes care of them)
+	  for(Stmt is:b.stmts)
+		visit(is);
+	}
+	//todo
+	case While w->{}
+	case If i->{}
+	case Return r->{}
+	case ExprStmt e->
+	  (new ExprCodeGen(asmProg)).visit(e.e);
+	}
+  }
 }

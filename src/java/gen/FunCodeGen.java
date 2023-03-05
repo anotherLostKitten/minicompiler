@@ -13,7 +13,7 @@ public class FunCodeGen extends CodeGen{
 	asmProg.newSection(AssemblyProgram.Section.Type.TEXT);
 	//todo emit prologue
 	//todo emit function body
-	StmtCodeGen scd = new StmtCodeGen(asmProg);
+	StmtCodeGen scd=new StmtCodeGen(asmProg);
 	scd.visit(fd.block);
 	//todo emit epilogue
   }

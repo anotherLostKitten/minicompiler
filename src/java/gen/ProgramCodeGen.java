@@ -12,13 +12,13 @@ public class ProgramCodeGen extends CodeGen{
 	MemAllocCodeGen allocator=new MemAllocCodeGen(asmProg);
 	allocator.visit(p);
 	// generate the code for each function
-	p.decls.forEach((d)->{
-		switch(d){
-		case FunDecl fd->{
-		  FunCodeGen fcg=new FunCodeGen(asmProg);
-		  fcg.visit(fd);
-		}
-		default->{}// nothing to do
-		}});
+	for(Decl d:p.decls)
+	  switch(d){
+	  case FunDecl fd->{
+		FunCodeGen fcg=new FunCodeGen(asmProg);
+		fcg.visit(fd);
+	  }
+	  default->{}
+	  };
   }
 }
