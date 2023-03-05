@@ -7,7 +7,7 @@ public class MemAllocCodeGen extends CodeGen{
   public MemAllocCodeGen(AssemblyProgram asmProg){
 	this.asmProg=asmProg;
   }
-  int g=0;//0:global, 1:function, 2:struct
+  int g=0;//0:global, 1:function body, 2:struct/function params
   int fpo=0;
   int visit(ASTNode n){
 	switch(n){

@@ -5,7 +5,7 @@ import java.util.Map;
 public final class StructTypeDecl extends Decl{
   public StructType type;
   public final List<VarDecl>vs;
-  public Map<String,Type>vst;
+  public Map<String,VarDecl>vst;
   public int size;
   public StructTypeDecl(StructType type,List<VarDecl>vs){
 	this.type=type;

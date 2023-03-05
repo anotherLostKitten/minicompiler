@@ -33,10 +33,10 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  yield t;
 	}
 	case StructTypeDecl std->{
-	  std.vst=new HashMap<String,Type>();
+	  std.vst=new HashMap<String,VarDecl>();
 	  for(VarDecl vd:std.vs){
 		visit(vd);
-		std.vst.put(vd.name,vd.type);//assumes name analysis passed
+		std.vst.put(vd.name,vd);//assumes name analysis passed
 	  }
 	  if(structs.containsKey(std.type.name))
 		error("StructTypeDecl struct name in use");
@@ -140,9 +140,9 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 		  error("FieldAccessExpr struct undefined "+t.name);
 		  yield BaseType.UNKNOWN;
 		}
-		Type ft=t.decl.vst.get(fa.field);
+		VarDecl ft=t.decl.vst.get(fa.field);
 		if(ft!=null)
-		  yield ft;
+		  yield ft.type;
 		error("FieldAccessExpr undefined field <"+t.name+">."+fa.field);
 		yield BaseType.UNKNOWN;
 	  }
