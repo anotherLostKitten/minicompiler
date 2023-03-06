@@ -174,7 +174,7 @@ public class ExprCodeGen extends CodeGen{
 	}
 	case FieldAccessExpr e->{
 	  Register st=visit(e.struct);
-	  int o=e.struct.type.decl.vst.get(e.field).o;
+	  int o=((StructType)e.struct.type).decl.vst.get(e.field).o;
 	  if(e.type instanceof PointerType||e.type==BaseType.INT)
 		ts.emit(OpCode.LW,vr(),st,o);
 	  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
@@ -191,12 +191,66 @@ public class ExprCodeGen extends CodeGen{
 	  else
 		this.rvr=vl;//todo? i think this is fine
 	}
-	case AddressOfExpr e->{}//todo ok address code gen idk
+	case AddressOfExpr e->{
+	  this.rvr=visitAddress(e.e);
+	}
 	case SizeOfExpr e->
 	  ts.emit(OpCode.LI,vr(),e.t.size());
 	case TypecastExpr e->
-	  this.rvr=visit(e.e)//todo? pretty sure i don't need to do anything
-	case Assign e->{}//todo ok address code gen idk
+	  this.rvr=visit(e.e);//todo? pretty sure i don't need to do anything
+	case Assign e->{
+	  Register a2=visitAddress(e.lhs);
+	  this.rvr=visit(e.rhs);
+	  if(e.type instanceof StructType s){
+		Register cp=Register.Virtual.create();//todo? should i make each iter.?
+		for(int i=0;i<s.size();i++){
+		  ts.emit(OpCode.LW,cp,this.rvr,i);
+		  ts.emit(OpCode.SW,cp,a2,i);
+		}
+		this.rvr=a2;
+	  }else if(e.type instanceof PointerType||e.type==BaseType.INT)
+		ts.emit(OpCode.SW,this.rvr,a2,0);
+	  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
+		ts.emit(OpCode.SB,this.rvr,a2,0);
+	  else
+		throw new IllegalStateException("Unreachable assigns type");
+	}
+	};
+	return this.rvr;
+  }
+  public Register visitAddress(Expr exp){
+	AssemblyProgram.Section ts=asmProg.getCurrentSection();	
+	switch(exp){
+	case VarExpr e->{
+	  if(e.vd.g)
+		ts.emit(OpCode.LA,vr(),e.vd.l);
+	  else
+		ts.emit(OpCode.ADDI,vr(),Register.Arch.fp,e.vd.o);
+	}
+	case ArrayAccessExpr e->{
+	  Register arr=visit(e.arr),ind=visit(e.ind);
+	  if(e.type instanceof PointerType||e.type==BaseType.INT){
+		Register tmp=Register.Virtual.create();
+		ts.emit(OpCode.SLL,tmp,ind,2);
+		ts.emit(OpCode.ADD,vr(),tmp,arr);
+	  }else if(e.type==BaseType.CHAR||e.type==BaseType.VOID){
+		ts.emit(OpCode.ADD,vr(),ind,arr);
+	  }else{
+		Register tmp=Register.Virtual.create(),tmp2=Register.Virtual.create();
+		ts.emit(OpCode.LI,tmp,e.arr.type.size());
+		ts.emit(OpCode.MUL,tmp2,tmp,ind);
+		ts.emit(OpCode.ADD,vr(),tmp2,arr);
+	  }
+	}
+	case FieldAccessExpr e->{
+	  Register st=visitAddress(e.struct);
+	  int o=((StructType)e.struct.type).decl.vst.get(e.field).o;
+	  ts.emit(OpCode.ADDI,vr(),st,o);
+	}
+	case ValueAtExpr e->
+	  this.rvr=visit(e.e);//todo? i think this is fine
+	case default->
+	  throw new IllegalStateException("Unreachable not an lval");
 	};
 	return this.rvr;
   }
