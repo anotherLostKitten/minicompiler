@@ -7,6 +7,9 @@ public final class StructType implements Type{
   public StructType(String name){
 	this.name=name;
   }
+  public int size(){
+	return decl==null?0:decl.size;
+  }
   public List<ASTNode>children(){
 	return new ArrayList<ASTNode>();
   }

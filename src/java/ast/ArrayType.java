@@ -4,9 +4,15 @@ import java.util.List;
 public final class ArrayType implements Type{
   public final Type type;
   public final int num;
+  private int size=-1;
   public ArrayType(Type type,int num){
 	this.type=type;
 	this.num=num;
+  }
+  public int size(){
+	if(size<0)
+	  size=type.size()*num;
+	return size;
   }
   public List<ASTNode>children(){
 	List<ASTNode>children=new ArrayList<ASTNode>();

@@ -9,31 +9,17 @@ public class MemAllocCodeGen extends CodeGen{
   }
   int g=0;//0:global, 1:function body, 2:struct/function params
   int fpo=0;
-  int visit(ASTNode n){
+  void visit(ASTNode n){
 	switch(n){
 	case Program p->{
 	  ds=asmProg.getCurrentSection();
 	  for(Decl d:p.decls)
 		visit(d);
 	}
-	case BaseType t->{
-	  switch (t){
-	  case INT:
-		return 4;
-	  case CHAR:
-	  case VOID:
-		return 1;
-	  }
-	}
-	case PointerType t->{
-	  return 4;
-	}
-	case StructType t->{
-	  return t.decl.size;
-	}
-	case ArrayType t->{
-	  return visit(t.type)*t.num;
-	}
+	case BaseType t->{}
+	case PointerType t->{}
+	case StructType t->{}
+	case ArrayType t->{}
 	case StructTypeDecl std->{
 	  g=2;
 	  fpo=0;
@@ -43,7 +29,7 @@ public class MemAllocCodeGen extends CodeGen{
 	  g=0;
 	}
 	case VarDecl vd->{
-	  int s=(visit(vd.type)-1|3)+1;//to pad
+	  int s=(vd.type.size()-1|3)+1;//to pad
 	  vd.g=g==0;
 	  switch(g){
 	  case 0:
@@ -61,7 +47,7 @@ public class MemAllocCodeGen extends CodeGen{
 	}
 	case FunDecl fd->{
 	  g=2;
-	  fpo=fd.rvo=4+visit(fd.type);//return address, return val
+	  fpo=fd.rvo=4+fd.type.size();//return address, return val
 	  for(VarDecl v:fd.params)
 		visit(v);
 	  fd.co=fpo;
@@ -101,8 +87,7 @@ public class MemAllocCodeGen extends CodeGen{
 	  visit(va.e);
 	case AddressOfExpr ao->
 	  visit(ao.e);
-	case SizeOfExpr so->
-	  so.v=visit(so.t);//may as well do this now
+	case SizeOfExpr so->{}
 	case TypecastExpr tc->
 	  visit(tc.e);
 	case Assign as->{
@@ -131,6 +116,5 @@ public class MemAllocCodeGen extends CodeGen{
 		visit(s);
 	}
 	};
-	return 0;
   }
 }

@@ -2,5 +2,5 @@ int main(){
   int a;
   int b;
   int c;
-  a+b;
+  print_i(3+1);
 }

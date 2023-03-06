@@ -3,7 +3,6 @@ import java.util.ArrayList;
 import java.util.List;
 public final class SizeOfExpr extends Expr{
   public final Type t;
-  public int v;
   public SizeOfExpr(Type t){
 	this.t=t;
   }

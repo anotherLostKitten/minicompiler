@@ -9,8 +9,38 @@ public class ExprCodeGen extends CodeGen{
 	this.asmProg=asmProg;
   }
   public Register visit(Expr exp){
-	Register vr=Register.Virtual.create();
 	AssemblyProgram.Section ts=asmProg.getCurrentSection();
+	if(exp instanceof FunCallExpr e&&e.fd.sc){
+	  switch(e.f){
+	  case"print_s"->{
+		ts.emit(OpCode.ADD,Register.Arch.a0,visit(e.args.get(0)),Register.Arch.zero);
+		ts.emit(OpCode.LI,Register.Arch.v0,4);
+	  }
+	  case"print_i"->{
+		ts.emit(OpCode.ADD,Register.Arch.a0,visit(e.args.get(0)),Register.Arch.zero);
+		ts.emit(OpCode.LI,Register.Arch.v0,1);
+	  }
+	  case"print_c"->{
+		ts.emit(OpCode.ADD,Register.Arch.a0,visit(e.args.get(0)),Register.Arch.zero);
+		ts.emit(OpCode.LI,Register.Arch.v0,11);
+	  }
+	  case"read_c"->{
+		ts.emit(OpCode.LI,Register.Arch.v0,12);
+	  }
+	  case"read_i"->{
+		ts.emit(OpCode.LI,Register.Arch.v0,5);
+	  }
+	  case"mcmalloc"->{
+		ts.emit(OpCode.ADD,Register.Arch.a0,visit(e.args.get(0)),Register.Arch.zero);
+		ts.emit(OpCode.LI,Register.Arch.v0,9);
+	  }
+	  case default->
+		throw new IllegalStateException("Unreachable not a stdlib function");
+	  };
+	  ts.emit(OpCode.SYSCALL);
+	  return Register.Arch.v0;
+	}
+	Register vr=Register.Virtual.create();
     switch(exp){
 	case IntLiteral e->
 	  ts.emit(OpCode.LI,vr,e.v);
@@ -26,7 +56,9 @@ public class ExprCodeGen extends CodeGen{
 	  }else
 		ts.emit(OpCode.LW,vr,Register.Arch.fp,e.vd.o);
 	}
-	case FunCallExpr e->{}//todo lmao
+	case FunCallExpr e->{
+	  //todo lmao
+	}
 	case BinOp e->{
 	  Register l=visit(e.lhs),r;
 	  switch(e.op){
@@ -108,7 +140,30 @@ public class ExprCodeGen extends CodeGen{
 	  }
 	  };
 	}
-	case ArrayAccessExpr e->{}
+	case ArrayAccessExpr e->{
+	  Register arr=visit(e.arr),ind=visit(e.ind);
+	  Type rt=switch(e.arr.type){
+	  case PointerType t->t.type;
+	  case ArrayType t->t.type;
+	  case default->null;
+	  };
+	  if(rt instanceof PointerType||rt==BaseType.INT){
+		Register tmp=Register.Virtual.create(),tmp2=Register.Virtual.create();
+		ts.emit(OpCode.SLL,tmp2,ind,2);
+		ts.emit(OpCode.ADD,tmp,tmp2,arr);
+		ts.emit(OpCode.LW,vr,tmp,0);
+	  }else if(rt==BaseType.CHAR||rt==BaseType.VOID){
+		Register tmp=Register.Virtual.create();
+		ts.emit(OpCode.ADD,tmp,ind,arr);
+		ts.emit(OpCode.LB,vr,tmp,0);
+	  }else{//todo idk if this is correct?
+		Register tmp=Register.Virtual.create(),tmp2=Register.Virtual.create();
+		ts.emit(OpCode.LI,tmp,e.arr.type.size());
+		ts.emit(OpCode.MUL,tmp2,tmp,ind);
+		ts.emit(OpCode.ADD,vr,tmp2,arr);
+	  }
+	}
+	//todo &c.
 	case FieldAccessExpr e->{}
 	case ValueAtExpr e->{}
 	case AddressOfExpr e->{}

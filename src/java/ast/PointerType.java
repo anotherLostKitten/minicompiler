@@ -6,6 +6,9 @@ public final class PointerType implements Type{
   public PointerType(Type type){
 	this.type=type;
   }
+  public int size(){
+	return 4;
+  }
   public List<ASTNode>children(){
 	List<ASTNode>children=new ArrayList<ASTNode>();
 	children.add(type);
