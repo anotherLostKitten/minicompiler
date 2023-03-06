@@ -1,6 +1,6 @@
 package gen;
 import ast.*;
-import gen.asm.AssemblyProgram;
+import gen.asm.*;
 /**
  * A visitor that produces code for a single function declaration
  */
@@ -10,7 +10,8 @@ public class FunCodeGen extends CodeGen{
   }
   void visit(FunDecl fd){
 	//each function produced in own section; necessary for register allocator
-	asmProg.newSection(AssemblyProgram.Section.Type.TEXT);
+	AssemblyProgram.Section fs=asmProg.newSection(AssemblyProgram.Section.Type.TEXT);
+	fs.emit("function "+fd.name);
 	//todo emit prologue
 	//todo emit function body
 	StmtCodeGen scd=new StmtCodeGen(asmProg);

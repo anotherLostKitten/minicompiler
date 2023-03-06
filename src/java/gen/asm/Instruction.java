@@ -54,11 +54,7 @@ public abstract sealed class Instruction extends AssemblyItem{
 	  return List.of(src1,src2);
 	}
 	public TernaryArithmetic rebuild(Map<Register,Register>regMap){
-	  return new TernaryArithmetic(
-								   (OpCode.TernaryArithmetic)opcode,
-								   regMap.getOrDefault(dst,dst),
-								   regMap.getOrDefault(src1,src1),
-								   regMap.getOrDefault(src2,src2));
+	  return new TernaryArithmetic((OpCode.TernaryArithmetic)opcode,regMap.getOrDefault(dst,dst),regMap.getOrDefault(src1,src1),regMap.getOrDefault(src2,src2));
 	}
 	@Override
 	public boolean equals(Object o){
@@ -94,10 +90,7 @@ public abstract sealed class Instruction extends AssemblyItem{
 	  return List.of(src1,src2);
 	}
 	public BinaryArithmetic rebuild(Map<Register,Register>regMap){
-	  return new BinaryArithmetic(
-								  (OpCode.BinaryArithmetic)opcode,
-								  regMap.getOrDefault(src1,src1),
-								  regMap.getOrDefault(src2,src2));
+	  return new BinaryArithmetic((OpCode.BinaryArithmetic)opcode,regMap.getOrDefault(src1,src1),regMap.getOrDefault(src2,src2));
 	}
 	@Override
 	public boolean equals(Object o){

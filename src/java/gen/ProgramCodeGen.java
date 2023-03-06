@@ -8,11 +8,11 @@ public class ProgramCodeGen extends CodeGen{
 	this.dataSection=asmProg.newSection(AssemblyProgram.Section.Type.DATA);
   }
   void generate(Program p){
-	// allocate all variables
+	//allocate all variables
 	MemAllocCodeGen allocator=new MemAllocCodeGen(asmProg);
 	allocator.visit(p);
-	// generate the code for each function
-	for(Decl d:p.decls)
+	//generate the code for each function
+	for(Decl d:p.decls){
 	  switch(d){
 	  case FunDecl fd->{
 		FunCodeGen fcg=new FunCodeGen(asmProg);
@@ -20,5 +20,7 @@ public class ProgramCodeGen extends CodeGen{
 	  }
 	  default->{}
 	  };
+	}
+	//todo idk make sure we start in main function somewhere
   }
 }
