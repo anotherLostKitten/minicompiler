@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 public final class Return extends Stmt{
   public final Expr e;
+  public FunDecl d;
   public Return(Expr e){
 	this.e=e;
   }

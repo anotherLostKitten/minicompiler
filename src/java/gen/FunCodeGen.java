@@ -11,11 +11,23 @@ public class FunCodeGen extends CodeGen{
   void visit(FunDecl fd){
 	//each function produced in own section; necessary for register allocator
 	AssemblyProgram.Section fs=asmProg.newSection(AssemblyProgram.Section.Type.TEXT);
-	fs.emit("function "+fd.name);
-	//todo emit prologue
-	//todo emit function body
+	fs.emit("function: "+fd.name);
+	fd.in=Label.create("function_"+fd.name);
+	fd.out=Label.create("function_return_"+fd.name);
+	fs.emit(fd.in);
+	//todo? prologue
+	fs.emit(OpCode.SW,Register.Arch.fp,Register.Arch.sp,-4);
+	fs.emit(OpCode.ADD,Register.Arch.fp,Register.Arch.sp,Register.Arch.zero);
+	fs.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,fd.size);
+	fs.emit(OpCode.PUSH_REGISTERS);
+	//todo? other stuff for body
 	StmtCodeGen scd=new StmtCodeGen(asmProg);
 	scd.visit(fd.block);
-	//todo emit epilogue
+	//todo? epilogue
+	fs.emit(fd.out);
+	fs.emit(OpCode.POP_REGISTERS);
+	fs.emit(OpCode.LW,Register.Arch.fp,Register.Arch.fp,-4);
+	fs.emit(OpCode.ADD,Register.Arch.sp,Register.Arch.fp,Register.Arch.zero);
+	fs.emit(OpCode.JR,Register.Arch.ra);//todo? so this should always return now
   }
 }

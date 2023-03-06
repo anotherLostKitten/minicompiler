@@ -4,7 +4,7 @@ import ast.BinOp.Op;
 import java.util.Map;
 import java.util.HashMap;
 public class TypeAnalyzer extends BaseSemanticAnalyzer{
-  private Type frt=BaseType.UNKNOWN;
+  private FunDecl frt=null;
   private Map<String,StructTypeDecl>structs;
   public Type visit(ASTNode node){
 	return switch(node){
@@ -55,11 +55,12 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  yield BaseType.NONE;
 	}
 	case FunDecl fd->{
-	  frt=visit(fd.type);
+	  visit(fd.type);
+	  frt=fd;
 	  for(VarDecl vd:fd.params)
 		visit(vd);
 	  visit(fd.block);
-	  frt=BaseType.UNKNOWN;
+	  frt=null;
 	  yield BaseType.NONE;
 	}
 	case IntLiteral i->{
@@ -242,11 +243,12 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  yield BaseType.NONE;
 	}
 	case Return r->{
+	  r.d=frt;
 	  if(r.e==null){
-		if(frt!=BaseType.VOID)
+		if(frt.type!=BaseType.VOID)
 		  error("Return expected an expression");
 	  }else{
-		if(!frt.equals(visit(r.e)))
+		if(!frt.type.equals(visit(r.e)))
 		  error("Return type does not match function header");
 	  }
 	  yield BaseType.NONE;

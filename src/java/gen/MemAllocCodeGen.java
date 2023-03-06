@@ -47,7 +47,7 @@ public class MemAllocCodeGen extends CodeGen{
 	}
 	case FunDecl fd->{
 	  g=2;
-	  fpo=fd.rvo=4+fd.type.size();//return address, return val
+	  fpo=(fd.type.size()-1|3)+5;//return address, return val
 	  for(VarDecl v:fd.params)
 		visit(v);
 	  fd.co=fpo;

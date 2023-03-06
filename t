@@ -10,4 +10,4 @@ do
 	/lib/jvm/java-17-openjdk/bin/java --enable-preview -cp bin Main $1 $FILE "out/out_$(basename $FILE)" | tail -1
 done
 
-grep -no "todo" $(find -name "*.java")
+grep -noP "todo\K.*" $(find -name "*.java")

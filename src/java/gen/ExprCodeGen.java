@@ -71,7 +71,38 @@ public class ExprCodeGen extends CodeGen{
 	  }
 	}
 	case FunCallExpr e->{
-	  //todo lmao
+	  ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,e.fd.co);
+	  for(int i=0;i<e.args.size();i++){
+		VarDecl pr=e.fd.params.get(i);
+		Register v=visit(e.args.get(i));
+		if(pr.type instanceof PointerType||pr.type==BaseType.INT)
+		  ts.emit(OpCode.SW,v,Register.Arch.sp,pr.o);
+		else if(pr.type==BaseType.CHAR||pr.type==BaseType.VOID)
+		  ts.emit(OpCode.SB,v,Register.Arch.sp,pr.o);
+		else{
+		  Register cp=Register.Virtual.create();//todo? should i make each iter?
+		  for(int j=0;j<pr.type.size();j++){
+			ts.emit(OpCode.LW,cp,v,j);
+			ts.emit(OpCode.SW,cp,Register.Arch.sp,j+pr.o);
+		  }
+		}
+	  }
+	  ts.emit(OpCode.SW,Register.Arch.ra,Register.Arch.sp,0);
+	  ts.emit(OpCode.JAL,e.fd.in);
+	  ts.emit(OpCode.LW,Register.Arch.ra,Register.Arch.sp,0);
+	  if(e.type instanceof PointerType||e.type==BaseType.INT)
+		ts.emit(OpCode.LW,vr(),Register.Arch.sp,4);
+	  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
+		ts.emit(OpCode.LB,vr(),Register.Arch.sp,4);
+	  else{//todo -- no clue honestly...
+		//Register cp=Register.Virtual.create();//todo? should i make each iter?
+		//for(int i=0;i<pr.type.size();i++){
+		//  ts.emit(OpCode.LW,cp,v,i);
+		//  ts.emit(OpCode.SW,cp,Register.Arch.sp,i+pr.o);
+		//}
+		throw new IllegalStateException("idk i am working on it");
+	  }
+	  ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-e.fd.co);
 	}
 	case BinOp e->{
 	  Register l=visit(e.lhs),r;
@@ -207,10 +238,10 @@ public class ExprCodeGen extends CodeGen{
 		  ts.emit(OpCode.LW,cp,this.rvr,i);
 		  ts.emit(OpCode.SW,cp,a2,i);
 		}
-		this.rvr=a2;
+ 		this.rvr=a2;
 	  }else if(e.type instanceof PointerType||e.type==BaseType.INT)
 		ts.emit(OpCode.SW,this.rvr,a2,0);
-	  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
+	  else if(e.type==BaseType.CHAR)
 		ts.emit(OpCode.SB,this.rvr,a2,0);
 	  else
 		throw new IllegalStateException("Unreachable assigns type");
