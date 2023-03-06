@@ -46,6 +46,8 @@ public class MemAllocCodeGen extends CodeGen{
 	  }
 	}
 	case FunDecl fd->{
+	  fd.in=Label.create("function_"+fd.name);
+	  fd.out=Label.create("function_return_"+fd.name);
 	  g=2;
 	  fpo=(fd.type.size()-1|3)+5;//return address, return val
 	  for(VarDecl v:fd.params)

@@ -71,7 +71,8 @@ public class ExprCodeGen extends CodeGen{
 	  }
 	}
 	case FunCallExpr e->{
-	  ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,e.fd.co);
+	  ts.emit("calling function "+e.f);
+	  ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-e.fd.co);
 	  for(int i=0;i<e.args.size();i++){
 		VarDecl pr=e.fd.params.get(i);
 		Register v=visit(e.args.get(i));
@@ -102,7 +103,7 @@ public class ExprCodeGen extends CodeGen{
 		//}
 		throw new IllegalStateException("idk i am working on it");
 	  }
-	  ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-e.fd.co);
+	  ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,e.fd.co);
 	}
 	case BinOp e->{
 	  Register l=visit(e.lhs),r;

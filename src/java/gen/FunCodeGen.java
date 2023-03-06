@@ -12,8 +12,6 @@ public class FunCodeGen extends CodeGen{
 	//each function produced in own section; necessary for register allocator
 	AssemblyProgram.Section fs=asmProg.newSection(AssemblyProgram.Section.Type.TEXT);
 	fs.emit("function: "+fd.name);
-	fd.in=Label.create("function_"+fd.name);
-	fd.out=Label.create("function_return_"+fd.name);
 	fs.emit(fd.in);
 	//todo? prologue
 	fs.emit(OpCode.SW,Register.Arch.fp,Register.Arch.sp,-4);

@@ -14,6 +14,8 @@ public class NameAnalyzer extends BaseSemanticAnalyzer{
 	  scope=new Scope();
 	  for(Decl d:p.decls)
 		visit(d);
+	  if(scope.lookupCurrent("main")instanceof FunSymbol f)
+		p.main=f.fd;
 	}
 	case BaseType t->{}
 	case PointerType t->{}
