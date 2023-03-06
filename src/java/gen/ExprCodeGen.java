@@ -96,12 +96,12 @@ public class ExprCodeGen extends CodeGen{
 	  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
 		ts.emit(OpCode.LB,vr(),Register.Arch.sp,4);
 	  else{//todo -- no clue honestly...
-		//Register cp=Register.Virtual.create();//todo? should i make each iter?
-		//for(int i=0;i<pr.type.size();i++){
-		//  ts.emit(OpCode.LW,cp,v,i);
-		//  ts.emit(OpCode.SW,cp,Register.Arch.sp,i+pr.o);
-		//}
-		throw new IllegalStateException("idk i am working on it");
+		Register cp=Register.Virtual.create();//todo? should i make each iter?
+		for(int i=0;i<e.type.size();i++){
+		  ts.emit(OpCode.LW,cp,Register.Arch.sp,i+4);
+		  ts.emit(OpCode.SW,cp,Register.Arch.fp,i+e.o);
+		}
+		ts.emit(OpCode.ADDI,vr(),Register.Arch.fp,e.o);
 	  }
 	  ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,e.fd.co);
 	}
