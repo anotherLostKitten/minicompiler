@@ -49,11 +49,12 @@ public class StmtCodeGen extends CodeGen{
 	  }
 	}
 	case Return r->{
+	  ts.emit("return");
 	  if(r.e!=null){
 		Register v=(new ExprCodeGen(asmProg)).visit(r.e);
 		if(r.e.type instanceof StructType s){
 		  Register cp=Register.Virtual.create();//todo? should i make each iter.?
-		  for(int i=0;i<s.size();i++){
+		  for(int i=0;i<s.size();i+=4){
 			ts.emit(OpCode.LW,cp,v,i);
 			ts.emit(OpCode.SW,cp,Register.Arch.fp,i+4);
 		  }
@@ -66,8 +67,10 @@ public class StmtCodeGen extends CodeGen{
 	  }
 	  ts.emit(OpCode.B,r.d.out);
 	}
-	case ExprStmt e->
+	case ExprStmt e->{
+	  ts.emit("exprstmt");
 	  (new ExprCodeGen(asmProg)).visit(e.e);
+	}
 	}
   }
 }

@@ -29,27 +29,27 @@ public class MemAllocCodeGen extends CodeGen{
 	  g=0;
 	}
 	case VarDecl vd->{
-	  int s=(vd.type.size()-1|3)+1;//to pad
+	  vd.s=(vd.type.size()-1|3)+1;//to pad
 	  vd.g=g==0;
 	  switch(g){
 	  case 0:
 		ds.emit(vd.l=Label.create(vd.name));
-		ds.emit(new Directive("space "+s));
+		ds.emit(new Directive("space "+vd.s));
 		break;
 	  case 1:
-		fpo-=s;
+		fpo-=vd.s;
 		vd.o=fpo;
 		break;
 	  case 2:
 		vd.o=fpo;
-		fpo+=s;
+		fpo+=vd.s;
 	  }
 	}
 	case FunDecl fd->{
 	  fd.in=Label.create("function_"+fd.name);
 	  fd.out=Label.create("function_return_"+fd.name);
 	  g=2;
-	  fpo=(fd.type.size()-1|3)+5;//return address, return val
+	  fd.rvo=fpo=(fd.type.size()-1|3)+5;//return address, return val
 	  for(VarDecl v:fd.params)
 		visit(v);
 	  fd.co=fpo;
@@ -74,7 +74,7 @@ public class MemAllocCodeGen extends CodeGen{
 	case FunCallExpr fc->{
 	  if(fc.type instanceof StructType st){
 		fc.o=fpo;
-		fpo+=(st.size()-1|3)+1;
+		fpo-=(st.size()-1|3)+1;//just allocate space on the stack for return values of any funciton which returns a struct
 	  }
 	  for(Expr r:fc.args)
 		visit(r);

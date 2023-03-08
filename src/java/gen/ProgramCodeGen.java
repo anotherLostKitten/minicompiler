@@ -16,6 +16,7 @@ public class ProgramCodeGen extends CodeGen{
 	  AssemblyProgram.Section fs=asmProg.newSection(AssemblyProgram.Section.Type.TEXT);
 	  fs.emit("initter");
 	  fs.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-p.main.co);
+	  fs.emit(OpCode.SW,Register.Arch.zero,Register.Arch.sp,4);
 	  fs.emit(OpCode.JAL,p.main.in);
 	  if(p.main.type==BaseType.CHAR||p.main.type==BaseType.VOID)
 		fs.emit(OpCode.LB,Register.Arch.a0,Register.Arch.sp,4);

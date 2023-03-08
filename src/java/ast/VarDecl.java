@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 public final class VarDecl extends Decl{
   public boolean g;
-  public int o;
+  public int o,s;
   public Label l;
   public VarDecl(Type type,String name){
 	this.type=type;

@@ -72,22 +72,23 @@ public class ExprCodeGen extends CodeGen{
 	}
 	case FunCallExpr e->{
 	  ts.emit("calling function "+e.f);
-	  ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-e.fd.co);
-	  for(int i=0;i<e.args.size();i++){
+	  for(int i=e.args.size()-1;i>=0;i--){//idk i guess i have to do rtl
 		VarDecl pr=e.fd.params.get(i);
+		ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-pr.s);
 		Register v=visit(e.args.get(i));
 		if(pr.type instanceof PointerType||pr.type==BaseType.INT)
-		  ts.emit(OpCode.SW,v,Register.Arch.sp,pr.o);
+		  ts.emit(OpCode.SW,v,Register.Arch.sp,0);
 		else if(pr.type==BaseType.CHAR||pr.type==BaseType.VOID)
-		  ts.emit(OpCode.SB,v,Register.Arch.sp,pr.o);
+		  ts.emit(OpCode.SB,v,Register.Arch.sp,0);
 		else{
 		  Register cp=Register.Virtual.create();//todo? should i make each iter?
-		  for(int j=0;j<pr.type.size();j++){
+		  for(int j=0;j<pr.type.size();j+=4){
 			ts.emit(OpCode.LW,cp,v,j);
-			ts.emit(OpCode.SW,cp,Register.Arch.sp,j+pr.o);
+			ts.emit(OpCode.SW,cp,Register.Arch.sp,j);
 		  }
 		}
 	  }
+	  ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-e.fd.rvo);
 	  ts.emit(OpCode.SW,Register.Arch.ra,Register.Arch.sp,0);
 	  ts.emit(OpCode.JAL,e.fd.in);
 	  ts.emit(OpCode.LW,Register.Arch.ra,Register.Arch.sp,0);
@@ -97,7 +98,7 @@ public class ExprCodeGen extends CodeGen{
 		ts.emit(OpCode.LB,vr(),Register.Arch.sp,4);
 	  else{//todo -- no clue honestly...
 		Register cp=Register.Virtual.create();//todo? should i make each iter?
-		for(int i=0;i<e.type.size();i++){
+		for(int i=0;i<e.type.size();i+=4){
 		  ts.emit(OpCode.LW,cp,Register.Arch.sp,i+4);
 		  ts.emit(OpCode.SW,cp,Register.Arch.fp,i+e.o);
 		}
@@ -235,7 +236,7 @@ public class ExprCodeGen extends CodeGen{
 	  this.rvr=visit(e.rhs);
 	  if(e.type instanceof StructType s){
 		Register cp=Register.Virtual.create();//todo? should i make each iter.?
-		for(int i=0;i<s.size();i++){
+		for(int i=0;i<s.size();i+=4){
 		  ts.emit(OpCode.LW,cp,this.rvr,i);
 		  ts.emit(OpCode.SW,cp,a2,i);
 		}
