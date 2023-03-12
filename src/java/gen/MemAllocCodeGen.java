@@ -1,11 +1,15 @@
 package gen;
 import ast.*;
 import gen.asm.*;
+import java.util.HashMap;
+import java.util.Map;
 //allocator for global & local variable decls
 public class MemAllocCodeGen extends CodeGen{
   AssemblyProgram.Section ds;
+  Map<String,Label>strls;
   public MemAllocCodeGen(AssemblyProgram asmProg){
 	this.asmProg=asmProg;
+	this.strls=new HashMap<String,Label>();
   }
   int g=0;//0:global, 1:function body, 2:struct/function params
   int fpo=0;
@@ -61,20 +65,24 @@ public class MemAllocCodeGen extends CodeGen{
 	}
 	case IntLiteral i->{}
 	case StrLiteral s->{
-	  StringBuilder sb=new StringBuilder("byte ");
-	  ds.emit(s.l=Label.create("string_ligeral"));
-	  for(int i=0;i<s.v.length();i++)
-		sb.append((int)s.v.charAt(i)+", ");
-	  sb.append("0");
-	  ds.emit(new Directive(sb.toString()));
-	  ds.emit(new Directive("align 2"));
+	  s.l=strls.get(s.v);
+	  if(s.l==null){
+		StringBuilder sb=new StringBuilder("byte ");
+		ds.emit(s.l=Label.create("string_ligeral"));
+		for(int i=0;i<s.v.length();i++)
+		  sb.append((int)s.v.charAt(i)+", ");
+		sb.append("0");
+		ds.emit(new Directive(sb.toString()));
+		ds.emit(new Directive("align 2"));
+		strls.put(s.v,s.l);
+	  }
 	}
 	case ChrLiteral c->{}
 	case VarExpr v->{}
 	case FunCallExpr fc->{
 	  if(fc.type instanceof StructType st){
 		fc.o=fpo;
-		fpo-=(st.size()-1|3)+1;//just allocate space on the stack for return values of any funciton which returns a struct
+		fpo-=(st.size()-1|3)+1;//just allocate space on the stack for return values of any funciton which returns a struct (lazy solution)
 	  }
 	  for(Expr r:fc.args)
 		visit(r);

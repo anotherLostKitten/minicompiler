@@ -8,11 +8,9 @@ public class ProgramCodeGen extends CodeGen{
 	this.dataSection=asmProg.newSection(AssemblyProgram.Section.Type.DATA);
   }
   void generate(Program p){
-	//allocate all variables
 	MemAllocCodeGen allocator=new MemAllocCodeGen(asmProg);
 	allocator.visit(p);
-	//generate the code for each function
-	if(p.main!=null){//todo idk make sure we start in main function somewhere
+	if(p.main!=null){//to start in main function
 	  AssemblyProgram.Section fs=asmProg.newSection(AssemblyProgram.Section.Type.TEXT);
 	  fs.emit("initter");
 	  fs.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-p.main.co);
