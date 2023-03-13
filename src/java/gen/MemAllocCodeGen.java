@@ -80,12 +80,10 @@ public class MemAllocCodeGen extends CodeGen{
 	case ChrLiteral c->{}
 	case VarExpr v->{}
 	case FunCallExpr fc->{
-	  if(fc.type instanceof StructType st){
-		fc.o=fpo;
-		fpo-=(st.size()-1|3)+1;//just allocate space on the stack for return values of any funciton which returns a struct (lazy solution)
-	  }
 	  for(Expr r:fc.args)
 		visit(r);
+	  if(fc.type instanceof StructType st)
+		fc.o=fpo-=(st.size()-1|3)+1;//just allocate space on the stack for return values of any funciton which returns a struct (lazy solution)
 	}
 	case BinOp bo->{
 	  visit(bo.rhs);
