@@ -1,12 +1,23 @@
 package regalloc;
-import gen.asm.AssemblyPass;
-import gen.asm.AssemblyProgram;
+import gen.asm.*;
+import java.util.ArrayList;
+import java.util.List;
 public class GraphColouringRegAlloc implements AssemblyPass{
   public static final GraphColouringRegAlloc INSTANCE=new GraphColouringRegAlloc();
+  public List<Cfg>cfgs;
+  public GraphColouringRegAlloc(){
+	this.cfgs=new ArrayList<Cfg>();
+  }
   @Override
-  public AssemblyProgram apply(AssemblyProgram program){
-	AssemblyProgram newProg=new AssemblyProgram();
-	// To complete
-	return newProg;
+  public AssemblyProgram apply(AssemblyProgram prog){
+	AssemblyProgram np=new AssemblyProgram();
+	for(AssemblyProgram.Section s:prog.sections)
+	  if(s.type==AssemblyProgram.Section.Type.DATA){
+		Cfg cfg=new Cfg(s);
+		cfgs.add(cfg);//so i can print them
+		//todo
+	  }else
+		np.emitSection(s);
+	return np;
   }
 }

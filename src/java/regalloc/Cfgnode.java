@@ -14,16 +14,10 @@ public class Cfgnode{
 	this.ins=ins;
 	this.preds=new ArrayList<Cfgnode>();
 	this.misc=misc;
-	this.lbls=new ArrayList<Label>();
-	while(!pds.isEmpty())
-	  this.lbls.add(pds.pop());
 	this.livein=new TreeSet<Register.Virtual>();
 	this.liveout=new TreeSet<Register.Virtual>();
 	for(Register r:ins.uses())
-	  switch(r){
-	  case Register.Virtual vr->
+	  if(r instanceof Register.Virtual vr)
 		this.livein.add(vr);
-	  case Register.Arch ar->{}
-	  };
   }
 }

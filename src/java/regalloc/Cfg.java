@@ -1,5 +1,6 @@
 package regalloc;
 import gen.asm.*;
+import gen.asm.Instruction.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,12 +16,12 @@ public class Cfg{
   public List<AssemblyItem>misc;
   public Cfg(AssemblyProgram.Section fb){
 	dests=new HashMap<Label,Cfgnode>();
-	nodes=new ArrayList<CfgNode>();
+	nodes=new ArrayList<Cfgnode>();
 	pds=new Stack<Label>();
-	pbjs=new Map<Label,Stack<Cfgnode>>();
+	pbjs=new HashMap<Label,Stack<Cfgnode>>();
 	last=null;
 	misc=null;
-	func=null;
+	Label func=null;
 	for(AssemblyItem cc:fb.items){
 	  switch(cc){
 	  case Comment c->{
@@ -47,7 +48,7 @@ public class Cfg{
 		while(!pds.isEmpty()){
 		  Stack<Cfgnode>extant=pbjs.remove(pds.peek());
 		  while(extant!=null&&!extant.isEmpty())
-			cfg.pred.add(extant.pop());
+			cfg.preds.add(extant.pop());
 		  dests.put(pds.pop(),cfg);
 		}
 		last=cfg;
@@ -59,7 +60,10 @@ public class Cfg{
 		case UnaryBranch ub->ub.label;
 		case ArithmeticWithImmediate awi->null;
 		case Jump j->j.label;
-		case JumpRegister jr->last=null;//assume only return from function
+		case JumpRegister jr->{
+		  last=null;//assume only return from function
+		  yield null;
+		}
 		case Load l->null;
 		case Store s->null;
 		case LoadImmediate li->null;
@@ -81,5 +85,6 @@ public class Cfg{
 	  }
 	  };
 	}
+	this.func=func;
   }
 }
