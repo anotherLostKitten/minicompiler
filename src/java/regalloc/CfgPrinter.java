@@ -1,4 +1,5 @@
 package regalloc;
+import gen.asm.Instruction;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.HashMap;
@@ -8,7 +9,7 @@ public class CfgPrinter{
 	this.w=w;
   }
   private void printv(int n,String l){
-	w.println("N_"+n+" [label=\""+l+"\"];");
+	w.println("N_"+n+" [label=\""+l+"\", shape=box];");
   }
   private void printe(int n,int c){
 	w.println("N_"+n+" ->  N_"+c+";");
@@ -20,13 +21,22 @@ public class CfgPrinter{
 	  HashMap<Cfgnode,Integer>vs=new HashMap<Cfgnode,Integer>();
 	  for(Cfgnode n:cfg.nodes){
 		vs.put(n,nc);
-		printv(nc++,n.ins.toString());
+		String res="";
+		for(Instruction in:n.ins)
+		  res+=in.toString()+"\\n";
+		printv(nc++,res);
 	  }
 	  for(Cfgnode n:cfg.nodes){
 		int vn=vs.get(n);
-		for(Cfgnode p:n.preds)
-		  printe(vs.get(p),vn);
+		for(Cfgnode s:n.succs)
+		  printe(vn,vs.get(s));
 	  }
+	  if(cfg.func!=null)
+		printv(nc,"FUNCITON: "+cfg.func.toString());
+	  else
+		printv(nc,"INITTER");
+	  printe(nc,vs.get(cfg.nodes.get(0)));
+	  nc++;
 	}
 	w.println("}");
 	w.flush();
