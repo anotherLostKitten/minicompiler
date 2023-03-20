@@ -12,7 +12,7 @@ public class GraphColouringRegAlloc implements AssemblyPass{
   public AssemblyProgram apply(AssemblyProgram prog){
 	AssemblyProgram np=new AssemblyProgram();
 	for(AssemblyProgram.Section s:prog.sections)
-	  if(s.type==AssemblyProgram.Section.Type.DATA){
+	  if(s.type==AssemblyProgram.Section.Type.TEXT){
 		Cfg cfg=new Cfg(s);
 		cfgs.add(cfg);//so i can print them
 		//todo

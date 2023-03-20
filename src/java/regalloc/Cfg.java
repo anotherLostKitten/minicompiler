@@ -19,8 +19,8 @@ public class Cfg{
 	nodes=new ArrayList<Cfgnode>();
 	pds=new Stack<Label>();
 	pbjs=new HashMap<Label,Stack<Cfgnode>>();
-	last=null;
-	misc=null;
+	Cfgnode last=null;
+	List<AssemblyItem>misc=null;
 	Label func=null;
 	for(AssemblyItem cc:fb.items){
 	  switch(cc){
@@ -59,9 +59,13 @@ public class Cfg{
 		case BinaryBranch bb->bb.label;
 		case UnaryBranch ub->ub.label;
 		case ArithmeticWithImmediate awi->null;
-		case Jump j->j.label;
+		case Jump j->{
+		  if(j.opcode==OpCode.J||j.opcode==OpCode.B)
+			last=null;//if not a func call--func call will return to next expr
+		  yield j.label;
+		}
 		case JumpRegister jr->{
-		  last=null;//assume only return from function
+		  last=null;//assume only used to return from function
 		  yield null;
 		}
 		case Load l->null;
@@ -86,5 +90,7 @@ public class Cfg{
 	  };
 	}
 	this.func=func;
+	this.last=last;
+	this.misc=misc;
   }
 }
