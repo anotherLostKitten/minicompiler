@@ -1,45 +1,42 @@
 import ast.ASTPrinter;
-import ast.DotPrinter;
 import ast.Program;
 import gen.CodeGenerator;
-import gen.asm.AssemblyParser;
-import gen.asm.AssemblyProgram;
+import gen.asm.AssemblyPass;
 import lexer.Scanner;
 import lexer.Token;
 import lexer.Tokeniser;
 import parser.Parser;
-import gen.asm.AssemblyPass;
-import regalloc.GraphColouringRegAlloc;
 import regalloc.NaiveRegAlloc;
 import sem.SemanticAnalyzer;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 
 
 /**
  * This is the entry point to the compiler. This files should not be modified.
  */
-public class Main {
+public class MainPart3 {
     private static final int FILE_NOT_FOUND = 2;
-    private static final int IO_EXCEPTION   = 3;
     private static final int MODE_FAIL      = 254;
     private static final int LEXER_FAIL     = 250;
     private static final int PARSER_FAIL    = 245;
     private static final int SEM_FAIL       = 240;
     private static final int PASS           = 0;
-
+    
     private enum Mode {
-	  LEXER, PARSER, AST, SEMANTICANALYSIS, DOT, GEN, REGALLOC
+        LEXER, PARSER, AST, SEMANTICANALYSIS, GEN
     }
 
     private enum RegAllocMode {
-        NONE, NAIVE, GRAPH_COLOURING
+        NONE, NAIVE
     }
 
     private static void usage() {
-        System.out.println("Usage: java "+ Main.class.getSimpleName()+" pass inputfile [outputfile]");
-        System.out.println("where pass is either: -lexer, -parser, -ast, -sem, -gen [naive|colour], -regalloc naive|colour");
-        System.out.println("if -ast, -gen or -regalloc is chosen, the output file must be specified");
+        System.out.println("Usage: java "+ MainPart3.class.getSimpleName()+" pass inputfile [outputfile]");
+        System.out.println("where pass is either: -lexer, -parser, -ast, -sem, -gen [naive]");
+        System.out.println("if -ast or -gen is chosen, the output file must be specified");
         System.exit(-1);
     }
 
@@ -81,26 +78,8 @@ public class Main {
                 if (args[curArgCnt].equals("naive")) {
                     regAllocMode = RegAllocMode.NAIVE;
                     curArgCnt++;
-                } else if (args[curArgCnt].equals("colour")) {
-                    regAllocMode = RegAllocMode.GRAPH_COLOURING;
-                    curArgCnt++;
                 }
                 break;
-            case "-regalloc":
-                mode = Mode.REGALLOC;
-                curArgCnt++;
-                ensureArgExists(args, curArgCnt);
-                if (args[curArgCnt].equals("naive")) {
-                    regAllocMode = RegAllocMode.NAIVE;
-                    curArgCnt++;
-                } else if (args[curArgCnt].equals("colour")) {
-                    regAllocMode = RegAllocMode.GRAPH_COLOURING;
-                    curArgCnt++;
-                }
-                break;
-		case "-dot":
-		  mode=Mode.DOT;
-		  break;
             default:
                 usage();
                 break;
@@ -121,12 +100,12 @@ public class Main {
 
         Tokeniser tokeniser = new Tokeniser(scanner);
         if (mode == Mode.LEXER) {
-            for (Token t = tokeniser.nextToken(); t.tokenClass != Token.TokenClass.EOF; t = tokeniser.nextToken())
+            for (Token t = tokeniser.nextToken(); t.tokenClass != Token.TokenClass.EOF; t = tokeniser.nextToken()) 
             	System.out.println(t);
             if (tokeniser.getErrorCount() == 0)
         		System.out.println("Lexing: pass");
     	    else
-        		System.out.println("Lexing: failed ("+tokeniser.getErrorCount()+" errors)");
+        		System.out.println("Lexing: failed ("+tokeniser.getErrorCount()+" errors)");	
             System.exit(tokeniser.getErrorCount() == 0 ? PASS : LEXER_FAIL);
         }
 
@@ -150,26 +129,11 @@ public class Main {
             if (parser.getErrorCount() == 0) {
                 PrintWriter writer = new PrintWriter(outputFile);
                 new ASTPrinter(writer).visit(programAst);
-				writer.print("\n");
                 writer.close();
             } else
                 System.out.println("Parsing: failed (" + parser.getErrorCount() + " errors)");
             System.exit(parser.getErrorCount() == 0 ? PASS : PARSER_FAIL);
         }
-
-		else if(mode==Mode.DOT){
-		  Parser p=new Parser(tokeniser);
-		  Program ast=p.parse();
-		  if(p.getErrorCount()==0){
-			File of=new File(args[2]);
-			PrintWriter w=new PrintWriter(of);
-			new DotPrinter(w).visit(ast);
-			w.print("\n");
-			w.close();
-		  }else
-			System.out.println("Parsing: failed ("+p.getErrorCount()+" errors)");
-		  System.exit(p.getErrorCount()>0?PARSER_FAIL:PASS);
-		}
 
         else if (mode == Mode.SEMANTICANALYSIS) {
             Parser parser = new Parser(tokeniser);
@@ -208,9 +172,6 @@ public class Main {
                 case NAIVE:
                     regAlloc = NaiveRegAlloc.INSTANCE;
                     break;
-                case GRAPH_COLOURING:
-                    regAlloc = GraphColouringRegAlloc.INSTANCE;
-                    break;
             }
             CodeGenerator codegen = new CodeGenerator(regAlloc);
             try {
@@ -219,54 +180,6 @@ public class Main {
                 System.out.println("File "+outputFile.toString()+" does not exist.");
                 System.exit(FILE_NOT_FOUND);
             }
-        }
-
-        else if (mode == Mode.REGALLOC) {
-            ensureArgExists(args, curArgCnt);
-            File outputFile = new File(args[curArgCnt]);
-            curArgCnt++;
-
-            AssemblyPass regAlloc = AssemblyPass.NOP;
-            switch (regAllocMode) {
-                case NONE:
-                    regAlloc = AssemblyPass.NOP;
-                    break;
-                case NAIVE:
-                    regAlloc = NaiveRegAlloc.INSTANCE;
-                    break;
-                case GRAPH_COLOURING:
-                    regAlloc = GraphColouringRegAlloc.INSTANCE;
-                    break;
-            }
-
-            AssemblyProgram program;
-            try {
-                var reader = new FileReader(inputFile);
-                program = AssemblyParser.readAssemblyProgram(new BufferedReader(reader));
-                reader.close();
-            } catch (FileNotFoundException e) {
-                System.out.println("File " + inputFile + " does not exist.");
-                System.exit(FILE_NOT_FOUND);
-                return;
-            } catch (IOException e) {
-                System.out.println("An I/O exception occurred when reading " + inputFile + ".");
-                System.exit(IO_EXCEPTION);
-                return;
-            }
-
-            var programWithoutVRegs = regAlloc.apply(program);
-
-            PrintWriter writer;
-            try {
-                writer = new PrintWriter(outputFile);
-            } catch (FileNotFoundException e) {
-                System.out.println("Cannot write to output file " + outputFile + ".");
-                System.exit(FILE_NOT_FOUND);
-                return;
-            }
-            programWithoutVRegs.print(writer);
-            writer.close();
-
         }
 
         else {
