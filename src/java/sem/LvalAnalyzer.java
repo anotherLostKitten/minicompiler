@@ -45,6 +45,8 @@ public class LvalAnalyzer extends BaseSemanticAnalyzer{
 	case AddressOfExpr ao->{
 	  if(!visit(ao.e))
 		error("AddressOfExpr lval error");
+	  else if(ao.e instanceof VarExpr ve)
+		ve.vd.r=false;
 	  yield false;
 	}
 	case SizeOfExpr so->false;

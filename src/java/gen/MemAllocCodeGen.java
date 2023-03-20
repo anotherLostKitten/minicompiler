@@ -36,15 +36,18 @@ public class MemAllocCodeGen extends CodeGen{
 	  vd.s=(vd.type.size()-1|3)+1;//to pad
 	  vd.g=g==0;
 	  switch(g){
-	  case 0:
+	  case 0://global
 		ds.emit(vd.l=Label.create(vd.name));
 		ds.emit(new Directive("space "+vd.s));
 		break;
-	  case 1:
-		fpo-=vd.s;
-		vd.o=fpo;
+	  case 1://function body
+		if(!vd.r){
+		  fpo-=vd.s;
+		  vd.o=fpo;
+		}else
+		  vd.vr=Register.Virtual.create();
 		break;
-	  case 2:
+	  case 2://function param/struct field
 		vd.o=fpo;
 		fpo+=vd.s;
 	  }

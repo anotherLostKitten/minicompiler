@@ -13,8 +13,11 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	}
 	case Program p->{
 	  structs=new HashMap<String,StructTypeDecl>();
-	  for(Decl d:p.decls)
+	  for(Decl d:p.decls){
 		visit(d);
+		if(d instanceof VarDecl vd)
+		  vd.r=false;
+	  }
 	  yield BaseType.NONE;
 	}
 	case BaseType t->t;
@@ -50,15 +53,21 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 		if(t==BaseType.VOID)
 		  error("VarDecl void type "+vd.name);
 	  }
-	  case Type t->{visit(t);}
+	  case PointerType t->{visit(t);}
+	  case Type t->{
+		visit(t);
+		vd.r=false;
+	  }
 	  }
 	  yield BaseType.NONE;
 	}
 	case FunDecl fd->{
 	  visit(fd.type);
 	  frt=fd;
-	  for(VarDecl vd:fd.params)
+	  for(VarDecl vd:fd.params){
 		visit(vd);
+		vd.r=false;
+	  }
 	  visit(fd.block);
 	  frt=null;
 	  yield BaseType.NONE;

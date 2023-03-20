@@ -62,12 +62,15 @@ public class ExprCodeGen extends CodeGen{
 		else
 		  this.rvr=va;
 	  }else{
-		if(e.type instanceof PointerType||e.type==BaseType.INT)
-		  ts.emit(OpCode.LW,vr(),Register.Arch.fp,e.vd.o);
-		else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
-		  ts.emit(OpCode.LB,vr(),Register.Arch.fp,e.vd.o);
-		else
-		  ts.emit(OpCode.ADDI,vr(),Register.Arch.fp,e.vd.o);
+		if(!e.vd.r){
+		  if(e.type instanceof PointerType||e.type==BaseType.INT)
+			ts.emit(OpCode.LW,vr(),Register.Arch.fp,e.vd.o);
+		  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
+			ts.emit(OpCode.LB,vr(),Register.Arch.fp,e.vd.o);
+		  else
+			ts.emit(OpCode.ADDI,vr(),Register.Arch.fp,e.vd.o);
+		}else
+		  this.rvr=e.vd.vr;
 	  }
 	}
 	case FunCallExpr e->{
@@ -232,27 +235,38 @@ public class ExprCodeGen extends CodeGen{
 	case TypecastExpr e->
 	  this.rvr=visit(e.e);//todo? pretty sure i don't need to do anything
 	case Assign e->{
-	  Register a2=visitAddress(e.lhs);
-	  this.rvr=visit(e.rhs);
-	  if(e.type instanceof StructType s){
-		Register cp=Register.Virtual.create();//todo? should i make each iter.?
-		for(int i=0;i<s.size();i+=4){
-		  ts.emit(OpCode.LW,cp,this.rvr,i);
-		  ts.emit(OpCode.SW,cp,a2,i);
-		}
- 		this.rvr=a2;
-	  }else if(e.type instanceof PointerType||e.type==BaseType.INT)
-		ts.emit(OpCode.SW,this.rvr,a2,0);
-	  else if(e.type==BaseType.CHAR)
-		ts.emit(OpCode.SB,this.rvr,a2,0);
-	  else
-		throw new IllegalStateException("Unreachable assigns type");
+	  if(e.lhs instanceof VarExpr ve&&ve.vd.r){
+		Register a2=visit(e.rhs);
+		this.rvr=ve.vd.vr;
+		if(e.type instanceof PointerType||e.type==BaseType.INT)
+		  ts.emit(OpCode.ADD,this.rvr,a2,Register.Arch.zero);
+		else if(e.type==BaseType.CHAR)
+		  ts.emit(OpCode.ANDI,this.rvr,a2,255);
+		else
+		  throw new IllegalStateException("Unreachable assigns type");
+	  }else{
+		Register a2=visitAddress(e.lhs);
+		this.rvr=visit(e.rhs);
+		if(e.type instanceof StructType s){
+		  Register cp=Register.Virtual.create();//todo? should i make each iter.?
+		  for(int i=0;i<s.size();i+=4){
+			ts.emit(OpCode.LW,cp,this.rvr,i);
+			ts.emit(OpCode.SW,cp,a2,i);
+		  }
+		  this.rvr=a2;
+		}else if(e.type instanceof PointerType||e.type==BaseType.INT)
+		  ts.emit(OpCode.SW,this.rvr,a2,0);
+		else if(e.type==BaseType.CHAR)
+		  ts.emit(OpCode.SB,this.rvr,a2,0);
+		else
+		  throw new IllegalStateException("Unreachable assigns type");
+	  }
 	}
 	};
 	return this.rvr;
   }
   public Register visitAddress(Expr exp){
-	AssemblyProgram.Section ts=asmProg.getCurrentSection();	
+	AssemblyProgram.Section ts=asmProg.getCurrentSection();
 	switch(exp){
 	case VarExpr e->{
 	  if(e.vd.g)
