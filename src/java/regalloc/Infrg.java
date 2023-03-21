@@ -45,6 +45,7 @@ public class Infrg{
 		  }
 	  }
 	}
+	allocs=new HashMap<Register.Virtual,Integer>();
 	Iterator<Register.Virtual>nohav=unal.iterator();
 	while(nohav.hasNext()){
 	  Register.Virtual vr=nohav.next();
@@ -54,7 +55,6 @@ public class Infrg{
 	  }
 	}
 	//allocation
-	allocs=new HashMap<Register.Virtual,Integer>();
 	Stack<Register.Virtual>toalloc=new Stack<Register.Virtual>();
 	Map<Register.Virtual,Integer>nbrs=new HashMap<Register.Virtual,Integer>();
 	for(Register.Virtual vr:edges.keySet())
@@ -89,8 +89,8 @@ public class Infrg{
 	  int i=0;
 	  for(;conts[i];i++);
 	  allocs.put(vr,i);
-	  if(i>numRegs)
-		numRegs=i;
+	  if(i+1>numRegs)
+		numRegs=i+1;
 	}
   }
 }

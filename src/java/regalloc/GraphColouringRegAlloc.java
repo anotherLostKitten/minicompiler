@@ -43,7 +43,7 @@ public class GraphColouringRegAlloc implements AssemblyPass{
 			}else if(i.opcode==OpCode.POP_REGISTERS){
 			  func.emit("popping regs");//todo spilling
 			  for(int o=0;o<infrg.numRegs;o++)
-				func.emit(OpCode.SW,infrg.regs[o],Register.Arch.sp,4*o);
+				func.emit(OpCode.LW,infrg.regs[o],Register.Arch.sp,4*o);
 			  func.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,4*infrg.numRegs);
 			}else{
 			  Map<Register,Register>repl=new HashMap<Register,Register>();
