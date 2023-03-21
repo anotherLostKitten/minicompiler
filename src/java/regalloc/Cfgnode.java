@@ -19,14 +19,14 @@ public class Cfgnode{
 	this.lastmisc=lastmisc;
 	this.reachable=false;
 	this.succs=new ArrayList<Cfgnode>();
-	this.liveout=new HashSet<Register.Virtual>();
-	blockLiveness(false);
   }
   public Instruction last(){
 	return ins.get(ins.size()-1);
   }
   public boolean blockLiveness(boolean purge){
 	boolean changed=false;
+	if(!purge)
+	  this.liveout=new HashSet<Register.Virtual>();
 	this.livein=new HashSet<Register.Virtual>();
 	this.defs=new HashSet<Register.Virtual>();
 	for(Register.Virtual rv:liveout)

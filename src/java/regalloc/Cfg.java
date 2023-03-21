@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 public class Cfg{
+  private static final Register.Arch[]sprgs={Register.Arch.s7,Register.Arch.s6};
   private static final boolean DO_PURGE=true;
   public final Label func;
   private Map<Label,Cfgnode>dests;
@@ -16,6 +17,7 @@ public class Cfg{
   private Stack<Label>pds;
   private Map<Label,Stack<Cfgnode>>pbjs;
   private Cfgnode last=null;
+  public Map<Register.Virtual,Label>spls;
   private void initCfgnode(Cfgnode cfg){
 	if(last!=null)
 	  last.succs.add(cfg);
@@ -67,6 +69,7 @@ public class Cfg{
 	pds=new Stack<Label>();
 	pbjs=new HashMap<Label,Stack<Cfgnode>>();
 	last=null;
+	spls=new HashMap<Register.Virtual,Label>();
 	List<AssemblyItem>misc=null;
 	List<Instruction>ins=new ArrayList<Instruction>();
 	Map<Instruction,List<AssemblyItem>>miscs=new HashMap<Instruction,List<AssemblyItem>>();
@@ -128,34 +131,47 @@ public class Cfg{
 		nodes.add(n);
 	this.nodes=nodes;
 	//liveness analysis
-	boolean purged,changed;
+	boolean purged;
 	do{
 	  purged=false;
-	  do{
-		changed=false;
-		for(int i=this.nodes.size();i-->0;){
-		  Cfgnode n=this.nodes.get(i);
-		  for(Cfgnode s:n.succs)
-			for(Register.Virtual vr:s.livein)
-			  if(n.liveout.add(vr))
-				changed=true;
-		  for(Register.Virtual vr:n.liveout)
-			if(!n.defs.contains(vr))
-			  if(n.livein.add(vr))
-				changed=true;
-		}
-	  }while(changed);
+	  computeLive();
 	  //remove dead vrs
-	  if(DO_PURGE){
+	  if(DO_PURGE)
 		for(Cfgnode n:this.nodes)
 		  if(n.blockLiveness(true))
 			purged=true;
-		if(purged)
-		  for(Cfgnode n:this.nodes){
-			n.liveout=new HashSet<Register.Virtual>();
-			n.blockLiveness(false);
-		  }
-	  }
 	}while(purged);
+  }
+  public void spill(Register.Virtual tospill){
+	Label spl=Label.create("spilled_"+tospill.toString());
+	for(Cfgnode n:nodes)
+	  for(int v=0;v<n.ins.size();v++){
+		int addlv=0;
+		Instruction i=n.ins.get(v);
+		if(i.def()==tospill){
+		  //todo
+		  addlv+=2;
+		}
+		v+=addlv;
+	  }
+  }
+  public void computeLive(){
+	for(Cfgnode n:this.nodes)
+	  n.blockLiveness(false);
+	boolean changed;
+	do{
+	  changed=false;
+	  for(int i=this.nodes.size();i-->0;){
+		Cfgnode n=this.nodes.get(i);
+		for(Cfgnode s:n.succs)
+		  for(Register.Virtual vr:s.livein)
+			if(n.liveout.add(vr))
+			  changed=true;
+		for(Register.Virtual vr:n.liveout)
+		  if(!n.defs.contains(vr))
+			if(n.livein.add(vr))
+			  changed=true;
+	  }
+	}while(changed);
   }
 }

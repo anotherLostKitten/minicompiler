@@ -20,9 +20,12 @@ public class GraphColouringRegAlloc implements AssemblyPass{
 		Cfg cfg=new Cfg(s);
 		cfgs.add(cfg);//so i can print them
 		Infrg infrg=new Infrg(cfg);
+		infrg.allocate();
 		infrgs.add(infrg);//so i can print them
 		AssemblyProgram.Section spills=np.newSection(AssemblyProgram.Section.Type.DATA);//todo
 		AssemblyProgram.Section func=np.newSection(AssemblyProgram.Section.Type.TEXT);
+		boolean countstack=true,knowo=true,initfp=false;
+		int spoff=0,fpoff=0;
 		for(Cfgnode n:cfg.nodes){
 		  for(Instruction i:n.ins){
 			List<AssemblyItem>misc=n.miscs.get(i);
@@ -36,7 +39,14 @@ public class GraphColouringRegAlloc implements AssemblyPass{
 				case Directive aaii->func.emit(aaii);
 				};
 			if(i.opcode==OpCode.PUSH_REGISTERS){
+			  countstack=false;
 			  func.emit("pushing regs");//todo spilling
+			  if(infrg.numSpills>0)
+				if(knowo&&initfp){
+				  //todo
+				}else{
+
+				}
 			  func.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-4*infrg.numRegs);
 			  for(int o=0;o<infrg.numRegs;o++)
 				func.emit(OpCode.SW,infrg.regs[o],Register.Arch.sp,4*o);
@@ -46,6 +56,54 @@ public class GraphColouringRegAlloc implements AssemblyPass{
 				func.emit(OpCode.LW,infrg.regs[o],Register.Arch.sp,4*o);
 			  func.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,4*infrg.numRegs);
 			}else{
+			  //best effort attempt to find offset we need from frame pointer
+			  if(countstack&&infrg.numSpills>0){
+				if(i.def()==Register.Arch.sp){
+				  if(i instanceof Instruction.ArithmeticWithImmediate awi&&awi.src==Register.Arch.sp)
+					if(awi.opcode==OpCode.ADDI&&awi.imm>-32769&&awi.imm<32768)
+					  spoff+=awi.imm;
+					else if(awi.opcode==OpCode.ADDIU&&awi.imm>=0&&awi.imm<65536)
+					  spoff+=awi.imm;
+					else
+					  knowo=false;
+				  else
+					knowo=false;
+				}else if(i.def()==Register.Arch.fp){
+				  if(i instanceof Instruction.ArithmeticWithImmediate awi){
+					if(awi.src==Register.Arch.fp){
+					  if(initfp)
+						if(awi.opcode==OpCode.ADDI&&awi.imm>-32769&&awi.imm<32768)
+						  fpoff+=awi.imm;
+						else if(awi.opcode==OpCode.ADDIU&&awi.imm>=0&&awi.imm<65536)
+						  fpoff+=awi.imm;
+						else
+						  initfp=false;
+					}else if(awi.src==Register.Arch.sp){
+					  if(awi.opcode==OpCode.ADDI&&awi.imm>-32769&&awi.imm<32768){
+						fpoff=spoff+awi.imm;
+						initfp=true;
+					  }else if(awi.opcode==OpCode.ADDIU&&awi.imm>=0&&awi.imm<65536){
+						fpoff=spoff+awi.imm;
+						initfp=true;
+					  }else
+						initfp=false;
+					}
+				  }else if(i instanceof Instruction.TernaryArithmetic ta){
+					Register a=ta.src1,b=ta.src2;
+					if(a==Register.Arch.zero){
+					  a=ta.src2;
+					  b=ta.src1;
+					}
+					if(a==Register.Arch.sp&&b==Register.Arch.zero){
+					  fpoff=spoff;
+					  initfp=true;
+					}else if(a==Register.Arch.fp&&b==Register.Arch.zero&&initfp)
+					  fpoff=fpoff;
+					else
+					  initfp=false;
+				  }
+				}
+			  }
 			  Map<Register,Register>repl=new HashMap<Register,Register>();
 			  for(Register reg:i.registers())
 				if(reg instanceof Register.Virtual vr){

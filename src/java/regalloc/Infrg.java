@@ -14,10 +14,13 @@ public class Infrg{
   public Map<Register.Virtual,Set<Register.Virtual>>edges;
   public final Label func;
   public int numRegs=0,numSpills=0;
+  private Cfg cfg;
+  private Set<Register.Virtual>unal;
   public Infrg(Cfg cfg){
+	this.cfg=cfg;
 	this.func=cfg.func;
 	edges=new HashMap<Register.Virtual,Set<Register.Virtual>>();
-	Set<Register.Virtual>unal=new HashSet<Register.Virtual>();
+	unal=new HashSet<Register.Virtual>();
 	for(Cfgnode n:cfg.nodes){
 	  HashSet<Register.Virtual>lives=new HashSet<Register.Virtual>();
 	  for(Register.Virtual vr:n.liveout)
@@ -54,7 +57,21 @@ public class Infrg{
 		allocs.put(vr,-2);//in case we save to a dead register, just use $zero
 	  }
 	}
-	//allocation
+  }
+  private void rollback(){
+	Iterator<Register.Virtual>nohav=allocs.keySet().iterator();
+	while(nohav.hasNext()){
+	  Register.Virtual vr=nohav.next();
+	  if(allocs.get(vr)>=0){
+		nohav.remove();
+		unal.add(vr);
+	  }
+	}
+  }
+  public void allocate(){
+	Register.Virtual ddsp=tryAllocate();
+  }
+  private Register.Virtual tryAllocate(){
 	Stack<Register.Virtual>toalloc=new Stack<Register.Virtual>();
 	Map<Register.Virtual,Integer>nbrs=new HashMap<Register.Virtual,Integer>();
 	for(Register.Virtual vr:edges.keySet())
@@ -68,23 +85,38 @@ public class Infrg{
 		}
 	  }
 	  if(next==null){
-		//todo
-		System.out.println("uh oh -- spilled!");
+		int maxnb=0;//todo better heuristic
+		for(Register.Virtual vr:edges.keySet())
+		  if(nbrs.get(vr)>maxnb){
+			maxnb=nbrs.get(vr);
+			next=vr;
+		  }
+		allocs.put(next,-1);
+		System.out.println("spilled "+next.toString());
 		numSpills++;
-	  }else{
-		toalloc.push(next);
 		unal.remove(next);
-		for(Register.Virtual nb:edges.get(next))
-		  nbrs.put(nb,nbrs.get(nb)-1);
+		return next;
 	  }
+	  toalloc.push(next);
+	  unal.remove(next);
+	  for(Register.Virtual nb:edges.get(next))
+		nbrs.put(nb,nbrs.get(nb)-1);
 	}
 	while(!toalloc.isEmpty()){
 	  Register.Virtual vr=toalloc.pop();
 	  boolean[]conts=new boolean[regs.length];
 	  for(Register.Virtual nb:edges.get(vr)){
-		Integer v=allocs.get(nb);
-		if(v!=null&&v>=0)
-		  conts[v]=true;
+		  Integer v=allocs.get(nb);
+		  if(v!=null&&v>=0)
+			conts[v]=true;
+		  //todo delete this
+		  /*if(nbrr instanceof Register.Arch nb){
+		  for(int v=0;v<regs.length;v++)
+			if(regs[v]==nb){
+			  conts[v]=true;
+			  break;
+			}
+		}*/
 	  }
 	  int i=0;
 	  for(;conts[i];i++);
@@ -92,5 +124,6 @@ public class Infrg{
 	  if(i+1>numRegs)
 		numRegs=i+1;
 	}
+	return null;
   }
 }
