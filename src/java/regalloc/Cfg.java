@@ -126,5 +126,21 @@ public class Cfg{
 	  if(n.reachable)
 		nodes.add(n);
 	this.nodes=nodes;
+	//liveness analysis
+	boolean changed;
+	do{
+	  changed=false;
+	  for(int i=this.nodes.size();i-->0;){
+		Cfgnode n=this.nodes.get(i);
+		for(Cfgnode s:n.succs)
+		  for(Register.Virtual vr:s.livein)
+			if(n.liveout.add(vr))
+			  changed=true;
+		for(Register.Virtual vr:n.liveout)
+		  if(!n.defs.contains(vr))
+			if(n.livein.add(vr))
+			  changed=true;
+	  }
+	}while(changed);
   }
 }

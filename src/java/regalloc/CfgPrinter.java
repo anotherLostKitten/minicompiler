@@ -1,5 +1,6 @@
 package regalloc;
 import gen.asm.Instruction;
+import gen.asm.Register;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.HashMap;
@@ -21,9 +22,21 @@ public class CfgPrinter{
 	  HashMap<Cfgnode,Integer>vs=new HashMap<Cfgnode,Integer>();
 	  for(Cfgnode n:cfg.nodes){
 		vs.put(n,nc);
-		String res="";
+		String res="[",tmp="";
+		for(Register.Virtual vr:n.livein){
+		  res+=tmp+vr.toString();
+		  tmp=" ";
+		}
+		res+="]\\n";
 		for(Instruction in:n.ins)
 		  res+=in.toString()+"\\n";
+		res+="[";
+		tmp="";
+		for(Register.Virtual vr:n.liveout){
+		  res+=tmp+vr.toString();
+		  tmp=" ";
+		}
+		res+="]";
 		printv(nc++,res);
 	  }
 	  for(Cfgnode n:cfg.nodes){
