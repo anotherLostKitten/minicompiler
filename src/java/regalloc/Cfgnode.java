@@ -22,7 +22,7 @@ public class Cfgnode{
 	this.livein=new HashSet<Register.Virtual>();
 	this.liveout=new HashSet<Register.Virtual>();
 	this.defs=new HashSet<Register.Virtual>();
-	for(int j=ins.size();j-->0;){
+  	for(int j=ins.size();j-->0;){
 	  Instruction i=ins.get(j);
 	  if(i.def()instanceof Register.Virtual vr){
 		defs.add(vr);

@@ -10,6 +10,7 @@ import lexer.Tokeniser;
 import parser.Parser;
 import gen.asm.AssemblyPass;
 import regalloc.CfgPrinter;
+import regalloc.InfrgPrinter;
 import regalloc.GraphColouringRegAlloc;
 import regalloc.NaiveRegAlloc;
 import sem.SemanticAnalyzer;
@@ -30,7 +31,7 @@ public class Main {
     private static final int PASS           = 0;
 
     private enum Mode {
-	  LEXER, PARSER, AST, SEMANTICANALYSIS, DOT, GEN, REGALLOC, CFG
+	  LEXER, PARSER, AST, SEMANTICANALYSIS, DOT, GEN, REGALLOC, CFG, INFRG
     }
 
     private enum RegAllocMode {
@@ -105,6 +106,10 @@ public class Main {
 		  break;
 		case "-cfg":
 		  mode=Mode.CFG;
+		  curArgCnt++;
+		  break;
+		case "-infrg":
+		  mode=Mode.INFRG;
 		  curArgCnt++;
 		  break;
             default:
@@ -257,6 +262,37 @@ public class Main {
 		  }
 		  CfgPrinter printer=new CfgPrinter(writer);
 		  printer.visit(regAlloc.cfgs);
+		  writer.close();
+		}else if(mode==Mode.INFRG){
+		  ensureArgExists(args,curArgCnt);
+		  File outputFile=new File(args[curArgCnt]);
+		  curArgCnt++;
+		  AssemblyProgram program;
+		  try{
+			FileReader reader=new FileReader(inputFile);
+			program=AssemblyParser.readAssemblyProgram(new BufferedReader(reader));
+			reader.close();
+		  }catch(FileNotFoundException e){
+			System.out.println("File "+inputFile+" does not exist");
+			System.exit(FILE_NOT_FOUND);
+			return;
+		  }catch(IOException e){
+			System.out.println("I/O exception when reading "+inputFile);
+			System.exit(IO_EXCEPTION);
+			return;
+		  }
+		  GraphColouringRegAlloc regAlloc=GraphColouringRegAlloc.INSTANCE;
+		  regAlloc.apply(program);
+		  PrintWriter writer;
+		  try{
+			writer=new PrintWriter(outputFile);
+		  }catch(FileNotFoundException e){
+			System.out.println("Cannot write to output file "+outputFile);
+			System.exit(FILE_NOT_FOUND);
+			return;
+		  }
+		  InfrgPrinter printer=new InfrgPrinter(writer);
+		  printer.visit(regAlloc.infrgs);
 		  writer.close();
 		}
 
