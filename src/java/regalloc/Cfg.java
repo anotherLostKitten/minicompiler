@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 public class Cfg{
+  private static final boolean DO_PURGE=true;
   public final Label func;
   private Map<Label,Cfgnode>dests;
   public List<Cfgnode>nodes;
@@ -127,20 +128,34 @@ public class Cfg{
 		nodes.add(n);
 	this.nodes=nodes;
 	//liveness analysis
-	boolean changed;
+	boolean purged,changed;
 	do{
-	  changed=false;
-	  for(int i=this.nodes.size();i-->0;){
-		Cfgnode n=this.nodes.get(i);
-		for(Cfgnode s:n.succs)
-		  for(Register.Virtual vr:s.livein)
-			if(n.liveout.add(vr))
-			  changed=true;
-		for(Register.Virtual vr:n.liveout)
-		  if(!n.defs.contains(vr))
-			if(n.livein.add(vr))
-			  changed=true;
+	  purged=false;
+	  do{
+		changed=false;
+		for(int i=this.nodes.size();i-->0;){
+		  Cfgnode n=this.nodes.get(i);
+		  for(Cfgnode s:n.succs)
+			for(Register.Virtual vr:s.livein)
+			  if(n.liveout.add(vr))
+				changed=true;
+		  for(Register.Virtual vr:n.liveout)
+			if(!n.defs.contains(vr))
+			  if(n.livein.add(vr))
+				changed=true;
+		}
+	  }while(changed);
+	  //remove dead vrs
+	  if(DO_PURGE){
+		for(Cfgnode n:this.nodes)
+		  if(n.blockLiveness(true))
+			purged=true;
+		if(purged)
+		  for(Cfgnode n:this.nodes){
+			n.liveout=new HashSet<Register.Virtual>();
+			n.blockLiveness(false);
+		  }
 	  }
-	}while(changed);
+	}while(purged);
   }
 }

@@ -10,8 +10,8 @@ public class Cfgnode{
   public final List<Instruction>ins;
   public Set<Register.Virtual>livein,liveout,defs;
   public List<Cfgnode>succs;
-  public final Map<Instruction,List<AssemblyItem>>miscs;
-  public final List<AssemblyItem>lastmisc;
+  final Map<Instruction,List<AssemblyItem>>miscs;
+  final List<AssemblyItem>lastmisc;
   public boolean reachable;
   public Cfgnode(List<Instruction>ins,Map<Instruction,List<AssemblyItem>>miscs,List<AssemblyItem>lastmisc){
 	this.ins=ins;
@@ -19,12 +19,27 @@ public class Cfgnode{
 	this.lastmisc=lastmisc;
 	this.reachable=false;
 	this.succs=new ArrayList<Cfgnode>();
-	this.livein=new HashSet<Register.Virtual>();
 	this.liveout=new HashSet<Register.Virtual>();
+	blockLiveness(false);
+  }
+  public Instruction last(){
+	return ins.get(ins.size()-1);
+  }
+  public boolean blockLiveness(boolean purge){
+	boolean changed=false;
+	this.livein=new HashSet<Register.Virtual>();
 	this.defs=new HashSet<Register.Virtual>();
+	for(Register.Virtual rv:liveout)
+	  livein.add(rv);
   	for(int j=ins.size();j-->0;){
 	  Instruction i=ins.get(j);
 	  if(i.def()instanceof Register.Virtual vr){
+		if(purge&&!livein.contains(vr)){
+		  ins.remove(j);
+		  miscs.remove(i);
+		  changed=true;
+		  continue;
+		}
 		defs.add(vr);
 		livein.remove(vr);
 	  }
@@ -34,8 +49,6 @@ public class Cfgnode{
 		  livein.add(vr);
 		}
 	}
-  }
-  public Instruction last(){
-	return ins.get(ins.size()-1);
+	return changed;
   }
 }
