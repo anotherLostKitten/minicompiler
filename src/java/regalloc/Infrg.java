@@ -15,7 +15,7 @@ public class Infrg{
   public final Label func;
   public int numRegs=0,numSpills=0;
   private Cfg cfg;
-  private Set<Register.Virtual>unal;
+  private Set<Register.Virtual>unal,dnsp;
   public Infrg(Cfg cfg){
 	this.cfg=cfg;
 	this.func=cfg.func;
@@ -69,7 +69,19 @@ public class Infrg{
 	}
   }
   public void allocate(){
-	Register.Virtual ddsp=tryAllocate();
+	dnsp=new HashSet<Register.Virtual>();
+	Register.Virtual ddsp=null,nvr;
+	do{
+	  ddsp=tryAllocate();
+	  if(ddsp!=null){
+		rollback();
+		unal.remove(ddsp);
+		nvr=cfg.spill(ddsp);
+		unal.add(nvr);
+		dnsp.put(nvr);
+	  }
+	}while(ddsp!=null);
+	dnsp=null;
   }
   private Register.Virtual tryAllocate(){
 	Stack<Register.Virtual>toalloc=new Stack<Register.Virtual>();
@@ -87,7 +99,7 @@ public class Infrg{
 	  if(next==null){
 		int maxnb=0;//todo better heuristic
 		for(Register.Virtual vr:edges.keySet())
-		  if(nbrs.get(vr)>maxnb){
+		  if(!dnsp.contains(vr)&&nbrs.get(vr)>maxnb){
 			maxnb=nbrs.get(vr);
 			next=vr;
 		  }
