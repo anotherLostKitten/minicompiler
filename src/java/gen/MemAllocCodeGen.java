@@ -122,7 +122,8 @@ public class MemAllocCodeGen extends CodeGen{
 		visit(ie.n);
 	}
 	case Return r->{
-	  visit(r.e);
+	  if(r.e!=null)
+		visit(r.e);
 	}
 	case Block b->{
 	  for(VarDecl v:b.vds)

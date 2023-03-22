@@ -36,4 +36,5 @@ void main(){
   f=fac(q);
   print_i(f);
   print_s((char*)"\n--\n");
+  return;
 }
