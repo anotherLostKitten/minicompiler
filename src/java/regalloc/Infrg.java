@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.Stack;
 public class Infrg{
   public static final Register.Arch[]regs={Register.Arch.t0,Register.Arch.t1,Register.Arch.t2,Register.Arch.t3,Register.Arch.t4,Register.Arch.t5,Register.Arch.t6,Register.Arch.t7,Register.Arch.t8,Register.Arch.t9,Register.Arch.s0,Register.Arch.s1,Register.Arch.s2,Register.Arch.s3,Register.Arch.s4,Register.Arch.s5,Register.Arch.s6,Register.Arch.s7};//-1: $zero
-  public Map<Register.Virtual,Integer>allocs;
+  public Map<Register.Virtual,Integer>allocs,uses;
   public Map<Register.Virtual,Set<Register.Virtual>>edges;
   public final Label func;
   public int numRegs=0,numSpills=0;
@@ -20,8 +20,13 @@ public class Infrg{
 	this.cfg=cfg;
 	this.func=cfg.func;
   }
+  private void use(Register.Virtual vr){
+	Integer i=uses.get(vr);
+	uses.put(vr,i==null?1:i+1);
+  }
   private void computeEdges(){
 	edges=new HashMap<Register.Virtual,Set<Register.Virtual>>();
+	uses=new HashMap<Register.Virtual,Integer>();
 	unal=new HashSet<Register.Virtual>();
 	for(Cfgnode n:cfg.nodes){
 	  HashSet<Register.Virtual>lives=new HashSet<Register.Virtual>();
@@ -71,11 +76,13 @@ public class Infrg{
 		  if(i.def()instanceof Register.Virtual vr){
 			lives.remove(vr);
 			unal.add(vr);
+			use(vr);
 		  }
 		  for(Register r:i.uses())
 			if(r instanceof Register.Virtual vr){
 			  lives.add(vr);
 			  unal.add(vr);
+			  use(vr);
 			}
 		}
 	  }
@@ -116,12 +123,14 @@ public class Infrg{
 		}
 	  }
 	  if(next==null){
-		int maxnb=0;//todo better heuristic
-		for(Register.Virtual vr:edges.keySet())
-		  if(!dnsp.contains(vr)&&nbrs.get(vr)>maxnb&&unal.contains(vr)){
-			maxnb=nbrs.get(vr);
+		float heur=0;
+		for(Register.Virtual vr:edges.keySet()){
+		  float nheur=(float)nbrs.get(vr)/(float)uses.get(vr);
+		  if(!dnsp.contains(vr)&&nheur>heur&&unal.contains(vr)){
+			heur=nheur;
 			next=vr;
 		  }
+		}
 		System.out.println("spilled "+next.toString());
 		numSpills++;
 		spills.push(next);
