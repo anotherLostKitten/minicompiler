@@ -155,7 +155,7 @@ public class Tokeniser{
 			v.append('\'');
 			break;
 		  case'0':
-			v.append(0);
+			v.append('\0');
 			break;
 		  default:
 			System.err.println("Unrecognized escape code in string literal");
@@ -209,7 +209,7 @@ public class Tokeniser{
 			v.append('\'');
 			break;
 		  case'0':
-			v.append(0);
+			v.append('\0');
 			break;
 		  default:
 			System.err.println("Unrecognized escape code in char literal");

@@ -26,7 +26,7 @@ struct bazinga bazinga(struct bazinga eggs){
   eggs.c=eggs.c+3;
   eggs.ss[3]='A';
   eggs.ss[4]='B';
-  eggs.ss[5]='C';
+  eggs.ss[5]='\0';
   eggs.ss[6]='D';
   print_s((char*)"oub: ");
   prntstruct(eggs);
