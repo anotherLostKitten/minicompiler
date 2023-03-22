@@ -150,58 +150,61 @@ public class Cfg{
 	  poreg=Register.Virtual.create();
 	}
   }
-  public void spill(Register.Virtual tospill,Set<Register.Virtual>dnsp,Set<Register.Virtual>unal){
-	Comment cmt=new Comment("spill "+tospill+(canfo?" to stack":" to label"));
-	Label spl=Label.create("spilled_"+tospill);
-	splo-=4;
-	int moff=spoff-fpoff+splo;
-	spls.add(spl);
-	for(Cfgnode n:nodes)
-	  for(int v=0;v<n.ins.size();v++){
-		Instruction i=n.ins.get(v);
-		Register.Virtual nvr=null;
-		for(Register rr:i.uses())
-		  if(rr==tospill){
-			Map<Register,Register>torep=new HashMap<Register,Register>();
-		    nvr=Register.Virtual.create();
-			dnsp.add(nvr);
-			unal.add(nvr);
-			torep.put(tospill,nvr);
-			n.ins.set(v,i.rebuild(torep));
-			List<AssemblyItem>a=n.miscs.get(v);
-			if(a==null)
-			  n.miscs.set(v,a=new ArrayList<AssemblyItem>());
-			a.add(cmt);
-			if(!this.canfo){
-			  n.ins.add(v++,new Instruction.LoadAddress(nvr,spl));
+  public void spill(Stack<Register.Virtual>ddsp,Set<Register.Virtual>dnsp,Set<Register.Virtual>unal){
+	while(!ddsp.isEmpty()){
+	  Register.Virtual tospill=ddsp.pop();
+	  Comment cmt=new Comment("spill "+tospill+(canfo?" to stack":" to label"));
+	  Label spl=Label.create("spilled_"+tospill);
+	  splo-=4;
+	  int moff=spoff-fpoff+splo;
+	  spls.add(spl);
+	  for(Cfgnode n:nodes)
+		for(int v=0;v<n.ins.size();v++){
+		  Instruction i=n.ins.get(v);
+		  Register.Virtual nvr=null;
+		  for(Register rr:i.uses())
+			if(rr==tospill){
+			  Map<Register,Register>torep=new HashMap<Register,Register>();
+			  nvr=Register.Virtual.create();
+			  dnsp.add(nvr);
+			  unal.add(nvr);
+			  torep.put(tospill,nvr);
+			  n.ins.set(v,i.rebuild(torep));
+			  List<AssemblyItem>a=n.miscs.get(v);
+			  if(a==null)
+				n.miscs.set(v,a=new ArrayList<AssemblyItem>());
+			  a.add(cmt);
+			  if(!this.canfo){
+				n.ins.add(v++,new Instruction.LoadAddress(nvr,spl));
+				n.miscs.add(v,null);
+				n.ins.add(v++,new Instruction.Load(OpCode.LW,nvr,nvr,0));
+			  }else
+				n.ins.add(v++,new Instruction.Load(OpCode.LW,nvr,Register.Arch.fp,moff));
 			  n.miscs.add(v,null);
-			  n.ins.add(v++,new Instruction.Load(OpCode.LW,nvr,nvr,0));
+			  break;
+			}
+		  if(i.def()==tospill){
+			if(nvr==null){
+			  Map<Register,Register>torep=new HashMap<Register,Register>();
+			  nvr=Register.Virtual.create();
+			  dnsp.add(nvr);
+			  unal.add(nvr);
+			  torep.put(tospill,nvr);
+			  n.ins.set(v,i.rebuild(torep));
+			}
+			n.miscs.add(++v,List.of(cmt));
+			if(!this.canfo){
+			  Register.Virtual nvr2=Register.Virtual.create();
+			  dnsp.add(nvr2);
+			  unal.add(nvr2);
+			  n.ins.add(v,new Instruction.LoadAddress(nvr2,spl));
+			  n.ins.add(++v,new Instruction.Store(OpCode.SW,nvr,nvr2,0));
+			  n.miscs.add(v,null);
 			}else
-			  n.ins.add(v++,new Instruction.Load(OpCode.LW,nvr,Register.Arch.fp,moff));
-			n.miscs.add(v,null);
-			break;
+			  n.ins.add(v,new Instruction.Store(OpCode.SW,nvr,Register.Arch.fp,moff));
 		  }
-		if(i.def()==tospill){
-		  if(nvr==null){
-			Map<Register,Register>torep=new HashMap<Register,Register>();
-			nvr=Register.Virtual.create();
-			dnsp.add(nvr);
-			unal.add(nvr);
-			torep.put(tospill,nvr);
-			n.ins.set(v,i.rebuild(torep));
-		  }
-		  n.miscs.add(++v,List.of(cmt));
-		  if(!this.canfo){
-			Register.Virtual nvr2=Register.Virtual.create();
-			dnsp.add(nvr2);
-			unal.add(nvr2);
-			n.ins.add(v,new Instruction.LoadAddress(nvr2,spl));
-			n.ins.add(++v,new Instruction.Store(OpCode.SW,nvr,nvr2,0));
-			n.miscs.add(v,null);
-		  }else
-			n.ins.add(v,new Instruction.Store(OpCode.SW,nvr,Register.Arch.fp,moff));
 		}
-	  }
+	}
 	computeLive();
   }
   private boolean tryOffset(){

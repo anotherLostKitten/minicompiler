@@ -92,7 +92,8 @@ public class Infrg{
   }
   public void allocate(){
 	dnsp=new HashSet<Register.Virtual>();
-	Register.Virtual ddsp=null,nvr;
+	Register.Virtual nvr;
+	Stack<Register.Virtual>ddsp=null;
 	do{
 	  computeEdges();
 	  ddsp=tryAllocate();
@@ -101,8 +102,8 @@ public class Infrg{
 	}while(ddsp!=null);
 	dnsp=null;
   }
-  private Register.Virtual tryAllocate(){
-	Stack<Register.Virtual>toalloc=new Stack<Register.Virtual>();
+  private Stack<Register.Virtual>tryAllocate(){
+	Stack<Register.Virtual>toalloc=new Stack<Register.Virtual>(),spills=new Stack<Register.Virtual>();
 	Map<Register.Virtual,Integer>nbrs=new HashMap<Register.Virtual,Integer>();
 	for(Register.Virtual vr:edges.keySet())
 	  nbrs.put(vr,edges.get(vr).size());
@@ -117,18 +118,22 @@ public class Infrg{
 	  if(next==null){
 		int maxnb=0;//todo better heuristic
 		for(Register.Virtual vr:edges.keySet())
-		  if(!dnsp.contains(vr)&&nbrs.get(vr)>maxnb){
+		  if(!dnsp.contains(vr)&&nbrs.get(vr)>maxnb&&unal.contains(vr)){
 			maxnb=nbrs.get(vr);
 			next=vr;
 		  }
 		System.out.println("spilled "+next.toString());
 		numSpills++;
-		return next;
-	  }
-	  toalloc.push(next);
+		spills.push(next);
+	  }else
+		toalloc.push(next);
 	  unal.remove(next);
 	  for(Register.Virtual nb:edges.get(next))
 		nbrs.put(nb,nbrs.get(nb)-1);
+	}
+	if(!spills.isEmpty()){
+	  System.out.println("recomputing liveness");
+	  return spills;
 	}
 	while(!toalloc.isEmpty()){
 	  Register.Virtual vr=toalloc.pop();
