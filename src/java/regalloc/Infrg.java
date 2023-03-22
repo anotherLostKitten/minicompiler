@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 public class Infrg{
-  public static final Register.Arch[]regs={Register.Arch.t0,Register.Arch.t1,Register.Arch.t2};//,Register.Arch.t3,Register.Arch.t4,Register.Arch.t5,Register.Arch.t6,Register.Arch.t7,Register.Arch.t8,Register.Arch.t9,Register.Arch.s0,Register.Arch.s1,Register.Arch.s2,Register.Arch.s3,Register.Arch.s4,Register.Arch.s5,Register.Arch.s6,Register.Arch.s7};//-1: $zero
+  public static final Register.Arch[]regs={Register.Arch.t0,Register.Arch.t1,Register.Arch.t2,Register.Arch.t3,Register.Arch.t4,Register.Arch.t5,Register.Arch.t6,Register.Arch.t7,Register.Arch.t8,Register.Arch.t9,Register.Arch.s0,Register.Arch.s1,Register.Arch.s2,Register.Arch.s3,Register.Arch.s4,Register.Arch.s5,Register.Arch.s6,Register.Arch.s7};//-1: $zero
   public Map<Register.Virtual,Integer>allocs;
   public Map<Register.Virtual,Set<Register.Virtual>>edges;
   public final Label func;
@@ -39,7 +39,7 @@ public class Infrg{
 		  }
 		}
 		Instruction i=n.ins.get(j);
-		if(!cfg.canfo&&i.opcode==OpCode.PUSH_REGISTERS){
+		if(!cfg.canfo&&numSpills>0&&i.opcode==OpCode.PUSH_REGISTERS){
 		  Set<Register.Virtual>a=edges.get(cfg.ppreg);
 		  if(a==null)
 			edges.put(cfg.ppreg,a=new HashSet<Register.Virtual>());
@@ -49,12 +49,14 @@ public class Infrg{
 		  }
 		  unal.add(cfg.ppreg);
 		  dnsp.add(cfg.ppreg);
-		}else if(!cfg.canfo&&i.opcode==OpCode.POP_REGISTERS){
+		}else if(!cfg.canfo&&numSpills>0&&i.opcode==OpCode.POP_REGISTERS){
 		  Set<Register.Virtual>a=edges.get(cfg.ppreg),b=edges.get(cfg.poreg);
 		  if(a==null)
 			edges.put(cfg.ppreg,a=new HashSet<Register.Virtual>());
 		  if(b==null)
 			edges.put(cfg.poreg,b=new HashSet<Register.Virtual>());
+		  a.add(cfg.poreg);
+		  b.add(cfg.ppreg);
 		  for(Register.Virtual vr:lives){
 			a.add(vr);
 			b.add(vr);

@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 public class Cfg{
-  private static final boolean DO_PURGE=false,DO_PRUNE=false;
+  private static final boolean DO_PURGE=true,DO_PRUNE=true,TRY_CANFO=true;
   public final Label func;
   private Map<Label,Cfgnode>dests;
   public List<Cfgnode>nodes;
@@ -45,7 +45,7 @@ public class Cfg{
 	case Store s->null;
 	case LoadImmediate li->null;
 	case LoadAddress la->null;
-	case Nullary nl->null;//todo? anything special for push/pop registers?
+	case Nullary nl->null;
 	};
 	if(jd!=null){
 	  Cfgnode dest=dests.get(jd);
@@ -144,8 +144,7 @@ public class Cfg{
 		  if(n.blockLiveness(true))
 			purged=true;
 	}while(purged);
-	canfo=tryOffset();
-	//System.out.println("canfo :"+canfo+" spoff: "+spoff+" fpoff: "+fpoff);
+	canfo=TRY_CANFO?tryOffset():false;
 	if(!canfo){
 	  ppreg=Register.Virtual.create();
 	  poreg=Register.Virtual.create();

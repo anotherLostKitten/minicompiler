@@ -46,17 +46,16 @@ public class GraphColouringRegAlloc implements AssemblyPass{
 				};
 			if(i.opcode==OpCode.PUSH_REGISTERS){
 			  func.emit("pushing regs");
-			  if(infrg.numSpills>0)
-				if(!cfg.canfo){
-				  Register.Arch ppreg=Infrg.regs[infrg.allocs.get(cfg.ppreg)];
-				  int splo=-4;
-				  for(Label spl:cfg.spls){
-					func.emit(OpCode.LA,ppreg,spl);
-					func.emit(OpCode.LW,ppreg,ppreg,0);
-					func.emit(OpCode.SW,ppreg,Register.Arch.sp,splo);
-					splo-=4;
-				  }
+			  if(infrg.numSpills>0&&!cfg.canfo){
+				Register.Arch ppreg=Infrg.regs[infrg.allocs.get(cfg.ppreg)];
+				int splo=-4;
+				for(Label spl:cfg.spls){
+				  func.emit(OpCode.LA,ppreg,spl);
+				  func.emit(OpCode.LW,ppreg,ppreg,0);
+				  func.emit(OpCode.SW,ppreg,Register.Arch.sp,splo);
+				  splo-=4;
 				}
+			  }
 			  func.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,cfg.splo-4*infrg.numRegs);
 			  for(int o=0;o<infrg.numRegs;o++)
 				func.emit(OpCode.SW,infrg.regs[o],Register.Arch.sp,4*o);
@@ -66,7 +65,7 @@ public class GraphColouringRegAlloc implements AssemblyPass{
 			  for(int o=0;o<infrg.numRegs;o++)
 				func.emit(OpCode.LW,infrg.regs[o],Register.Arch.sp,4*o);
 			  func.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,4*infrg.numRegs-cfg.splo);
-			  if(!cfg.canfo){
+			  if(infrg.numSpills>0&&!cfg.canfo){
 				Register.Arch ppreg=Infrg.regs[infrg.allocs.get(cfg.ppreg)],poreg=Infrg.regs[infrg.allocs.get(cfg.poreg)];
 				int splo=-4;
 				for(Label spl:cfg.spls){
