@@ -3,20 +3,17 @@ import gen.asm.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 public class Cfgnode{
   public final List<Instruction>ins;
   public Set<Register.Virtual>livein,liveout,defs;
   public List<Cfgnode>succs;
-  final Map<Instruction,List<AssemblyItem>>miscs;
-  final List<AssemblyItem>lastmisc;
+  final List<List<AssemblyItem>>miscs;
   public boolean reachable;
-  public Cfgnode(List<Instruction>ins,Map<Instruction,List<AssemblyItem>>miscs,List<AssemblyItem>lastmisc){
+  public Cfgnode(List<Instruction>ins,List<List<AssemblyItem>>miscs){
 	this.ins=ins;
 	this.miscs=miscs;
-	this.lastmisc=lastmisc;
 	this.reachable=false;
 	this.succs=new ArrayList<Cfgnode>();
   }
@@ -36,7 +33,7 @@ public class Cfgnode{
 	  if(i.def()instanceof Register.Virtual vr){
 		if(purge&&!livein.contains(vr)){
 		  ins.remove(j);
-		  miscs.remove(i);
+		  miscs.remove(j);
 		  changed=true;
 		  continue;
 		}

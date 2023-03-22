@@ -1,6 +1,5 @@
 package regalloc;
-import gen.asm.Instruction;
-import gen.asm.Register;
+import gen.asm.*;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.HashMap;
@@ -28,8 +27,14 @@ public class CfgPrinter{
 		  tmp=" ";
 		}
 		res+="]\\n";
-		for(Instruction in:n.ins)
-		  res+=in.toString()+"\\n";
+		int misci=0;
+		for(Instruction in:n.ins){
+		  List<AssemblyItem>misc=n.miscs.get(misci++);
+		  if(misc!=null)
+			for(AssemblyItem ai:misc)
+			  res+=ai.toString()+"\\l";
+		  res+="  "+in.toString()+"\\l";
+		}
 		res+="[";
 		tmp="";
 		for(Register.Virtual vr:n.liveout){

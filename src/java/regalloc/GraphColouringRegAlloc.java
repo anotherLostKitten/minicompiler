@@ -22,13 +22,19 @@ public class GraphColouringRegAlloc implements AssemblyPass{
 		Infrg infrg=new Infrg(cfg);
 		infrg.allocate();
 		infrgs.add(infrg);//so i can print them
-		AssemblyProgram.Section spills=np.newSection(AssemblyProgram.Section.Type.DATA);//todo
-		AssemblyProgram.Section func=np.newSection(AssemblyProgram.Section.Type.TEXT);
-		boolean countstack=true,knowo=true,initfp=false;
-		int spoff=0,fpoff=0;
+		AssemblyProgram.Section func,spills=null;
+		if(!cfg.canfo&&infrg.numSpills>0){
+		  spills=np.newSection(AssemblyProgram.Section.Type.DATA);
+		  for(Label spl:cfg.spls){
+			spills.emit(spl);
+			spills.emit(new Directive("space "+4));
+		  }
+		}
+		func=np.newSection(AssemblyProgram.Section.Type.TEXT);
 		for(Cfgnode n:cfg.nodes){
+		  int misci=0;
 		  for(Instruction i:n.ins){
-			List<AssemblyItem>misc=n.miscs.get(i);
+			List<AssemblyItem>misc=n.miscs.get(misci++);
 			if(misc!=null)
 			  for(AssemblyItem ai:misc)
 				switch(ai){
@@ -39,99 +45,55 @@ public class GraphColouringRegAlloc implements AssemblyPass{
 				case Directive aaii->func.emit(aaii);
 				};
 			if(i.opcode==OpCode.PUSH_REGISTERS){
-			  countstack=false;
-			  func.emit("pushing regs");//todo spilling
+			  func.emit("pushing regs");
 			  if(infrg.numSpills>0)
-				if(knowo&&initfp){
-				  //todo
-				}else{
-
-				}
-			  func.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-4*infrg.numRegs);
-			  for(int o=0;o<infrg.numRegs;o++)
-				func.emit(OpCode.SW,infrg.regs[o],Register.Arch.sp,4*o);
-			}else if(i.opcode==OpCode.POP_REGISTERS){
-			  func.emit("popping regs");//todo spilling
-			  for(int o=0;o<infrg.numRegs;o++)
-				func.emit(OpCode.LW,infrg.regs[o],Register.Arch.sp,4*o);
-			  func.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,4*infrg.numRegs);
-			}else{
-			  //best effort attempt to find offset we need from frame pointer
-			  if(countstack&&infrg.numSpills>0){
-				if(i.def()==Register.Arch.sp){
-				  if(i instanceof Instruction.ArithmeticWithImmediate awi&&awi.src==Register.Arch.sp)
-					if(awi.opcode==OpCode.ADDI&&awi.imm>-32769&&awi.imm<32768)
-					  spoff+=awi.imm;
-					else if(awi.opcode==OpCode.ADDIU&&awi.imm>=0&&awi.imm<65536)
-					  spoff+=awi.imm;
-					else
-					  knowo=false;
-				  else
-					knowo=false;
-				}else if(i.def()==Register.Arch.fp){
-				  if(i instanceof Instruction.ArithmeticWithImmediate awi){
-					if(awi.src==Register.Arch.fp){
-					  if(initfp)
-						if(awi.opcode==OpCode.ADDI&&awi.imm>-32769&&awi.imm<32768)
-						  fpoff+=awi.imm;
-						else if(awi.opcode==OpCode.ADDIU&&awi.imm>=0&&awi.imm<65536)
-						  fpoff+=awi.imm;
-						else
-						  initfp=false;
-					}else if(awi.src==Register.Arch.sp){
-					  if(awi.opcode==OpCode.ADDI&&awi.imm>-32769&&awi.imm<32768){
-						fpoff=spoff+awi.imm;
-						initfp=true;
-					  }else if(awi.opcode==OpCode.ADDIU&&awi.imm>=0&&awi.imm<65536){
-						fpoff=spoff+awi.imm;
-						initfp=true;
-					  }else
-						initfp=false;
-					}
-				  }else if(i instanceof Instruction.TernaryArithmetic ta){
-					Register a=ta.src1,b=ta.src2;
-					if(a==Register.Arch.zero){
-					  a=ta.src2;
-					  b=ta.src1;
-					}
-					if(a==Register.Arch.sp&&b==Register.Arch.zero){
-					  fpoff=spoff;
-					  initfp=true;
-					}else if(a==Register.Arch.fp&&b==Register.Arch.zero&&initfp)
-					  fpoff=fpoff;
-					else
-					  initfp=false;
+				if(!cfg.canfo){
+				  Register.Arch ppreg=Infrg.regs[infrg.allocs.get(cfg.ppreg)];
+				  int splo=-4;
+				  for(Label spl:cfg.spls){
+					func.emit(OpCode.LA,ppreg,spl);
+					func.emit(OpCode.LW,ppreg,ppreg,0);
+					func.emit(OpCode.SW,ppreg,Register.Arch.sp,splo);
+					splo-=4;
 				  }
 				}
+			  func.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,cfg.splo-4*infrg.numRegs);
+			  for(int o=0;o<infrg.numRegs;o++)
+				func.emit(OpCode.SW,infrg.regs[o],Register.Arch.sp,4*o);
+			  func.emit("gnihsup regs");
+			}else if(i.opcode==OpCode.POP_REGISTERS){
+			  func.emit("popping regs");
+			  for(int o=0;o<infrg.numRegs;o++)
+				func.emit(OpCode.LW,infrg.regs[o],Register.Arch.sp,4*o);
+			  func.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,4*infrg.numRegs-cfg.splo);
+			  if(!cfg.canfo){
+				Register.Arch ppreg=Infrg.regs[infrg.allocs.get(cfg.ppreg)],poreg=Infrg.regs[infrg.allocs.get(cfg.poreg)];
+				int splo=-4;
+				for(Label spl:cfg.spls){
+				  func.emit(OpCode.LA,ppreg,spl);
+				  func.emit(OpCode.LW,poreg,Register.Arch.sp,splo);
+				  func.emit(OpCode.SW,poreg,ppreg,0);
+				  splo-=4;
+				}
 			  }
+			  func.emit("gnippop regs");
+			}else{
 			  Map<Register,Register>repl=new HashMap<Register,Register>();
 			  for(Register reg:i.registers())
 				if(reg instanceof Register.Virtual vr){
 				  int r=infrg.allocs.get(reg);
 				  switch(r){
 				  case-2:
-					repl.put(reg,Register.Arch.zero);
-					break;
 				  case-1:
-					System.out.println("spilling!");
+					repl.put(reg,Register.Arch.zero);
 					break;
 				  default:
 					repl.put(reg,Infrg.regs[r]);
 				  }
 				}
-			  //todo spilling
 			  func.emit(i.rebuild(repl));
 			}
 		  }
-		  if(n.lastmisc!=null)
-			for(AssemblyItem ai:n.lastmisc)
-			  switch(ai){
-			  case Comment aaii->func.emit(aaii);
-			  case Instruction aaii->
-				throw new IllegalStateException("unreachable not misc");
-			  case Label aaii->func.emit(aaii);
-			  case Directive aaii->func.emit(aaii);
-			  };
 		}
 	  }else
 		np.emitSection(s);

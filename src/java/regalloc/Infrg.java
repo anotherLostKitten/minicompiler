@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 public class Infrg{
-  public static final Register.Arch[]regs={Register.Arch.t0,Register.Arch.t1,Register.Arch.t2,Register.Arch.t3,Register.Arch.t4,Register.Arch.t5,Register.Arch.t6,Register.Arch.t7,Register.Arch.t8,Register.Arch.t9,Register.Arch.s0,Register.Arch.s1,Register.Arch.s2,Register.Arch.s3,Register.Arch.s4,Register.Arch.s5,Register.Arch.s6,Register.Arch.s7};//-1: spill, -2: $zero
+  public static final Register.Arch[]regs={Register.Arch.t0,Register.Arch.t1,Register.Arch.t2};//,Register.Arch.t3,Register.Arch.t4,Register.Arch.t5,Register.Arch.t6,Register.Arch.t7,Register.Arch.t8,Register.Arch.t9,Register.Arch.s0,Register.Arch.s1,Register.Arch.s2,Register.Arch.s3,Register.Arch.s4,Register.Arch.s5,Register.Arch.s6,Register.Arch.s7};//-1: $zero
   public Map<Register.Virtual,Integer>allocs;
   public Map<Register.Virtual,Set<Register.Virtual>>edges;
   public final Label func;
@@ -19,6 +19,8 @@ public class Infrg{
   public Infrg(Cfg cfg){
 	this.cfg=cfg;
 	this.func=cfg.func;
+  }
+  private void computeEdges(){
 	edges=new HashMap<Register.Virtual,Set<Register.Virtual>>();
 	unal=new HashSet<Register.Virtual>();
 	for(Cfgnode n:cfg.nodes){
@@ -37,15 +39,43 @@ public class Infrg{
 		  }
 		}
 		Instruction i=n.ins.get(j);
-		if(i.def()instanceof Register.Virtual vr){
-		  unal.add(vr);
-		  lives.remove(vr);
-		}
-		for(Register r:i.uses())
-		  if(r instanceof Register.Virtual vr){
-			unal.add(vr);
-			lives.add(vr);
+		if(!cfg.canfo&&i.opcode==OpCode.PUSH_REGISTERS){
+		  Set<Register.Virtual>a=edges.get(cfg.ppreg);
+		  if(a==null)
+			edges.put(cfg.ppreg,a=new HashSet<Register.Virtual>());
+		  for(Register.Virtual vr:lives){
+			a.add(vr);
+			edges.get(vr).add(cfg.ppreg);
 		  }
+		  unal.add(cfg.ppreg);
+		  dnsp.add(cfg.ppreg);
+		}else if(!cfg.canfo&&i.opcode==OpCode.POP_REGISTERS){
+		  Set<Register.Virtual>a=edges.get(cfg.ppreg),b=edges.get(cfg.poreg);
+		  if(a==null)
+			edges.put(cfg.ppreg,a=new HashSet<Register.Virtual>());
+		  if(b==null)
+			edges.put(cfg.poreg,b=new HashSet<Register.Virtual>());
+		  for(Register.Virtual vr:lives){
+			a.add(vr);
+			b.add(vr);
+			edges.get(vr).add(cfg.ppreg);
+			edges.get(vr).add(cfg.poreg);
+		  }
+		  unal.add(cfg.ppreg);
+		  dnsp.add(cfg.ppreg);
+		  unal.add(cfg.poreg);
+		  dnsp.add(cfg.poreg);
+		}else{
+		  if(i.def()instanceof Register.Virtual vr){
+			lives.remove(vr);
+			unal.add(vr);
+		  }
+		  for(Register r:i.uses())
+			if(r instanceof Register.Virtual vr){
+			  lives.add(vr);
+			  unal.add(vr);
+			}
+		}
 	  }
 	}
 	allocs=new HashMap<Register.Virtual,Integer>();
@@ -54,17 +84,7 @@ public class Infrg{
 	  Register.Virtual vr=nohav.next();
 	  if(!edges.containsKey(vr)){
 		nohav.remove();
-		allocs.put(vr,-2);//in case we save to a dead register, just use $zero
-	  }
-	}
-  }
-  private void rollback(){
-	Iterator<Register.Virtual>nohav=allocs.keySet().iterator();
-	while(nohav.hasNext()){
-	  Register.Virtual vr=nohav.next();
-	  if(allocs.get(vr)>=0){
-		nohav.remove();
-		unal.add(vr);
+		allocs.put(vr,-1);//in case we save to a dead register, just use $zero
 	  }
 	}
   }
@@ -72,14 +92,10 @@ public class Infrg{
 	dnsp=new HashSet<Register.Virtual>();
 	Register.Virtual ddsp=null,nvr;
 	do{
+	  computeEdges();
 	  ddsp=tryAllocate();
-	  if(ddsp!=null){
-		rollback();
-		unal.remove(ddsp);
-		nvr=cfg.spill(ddsp);
-		unal.add(nvr);
-		dnsp.put(nvr);
-	  }
+	  if(ddsp!=null)
+		cfg.spill(ddsp,dnsp,unal);
 	}while(ddsp!=null);
 	dnsp=null;
   }
@@ -103,10 +119,8 @@ public class Infrg{
 			maxnb=nbrs.get(vr);
 			next=vr;
 		  }
-		allocs.put(next,-1);
 		System.out.println("spilled "+next.toString());
 		numSpills++;
-		unal.remove(next);
 		return next;
 	  }
 	  toalloc.push(next);
@@ -121,14 +135,6 @@ public class Infrg{
 		  Integer v=allocs.get(nb);
 		  if(v!=null&&v>=0)
 			conts[v]=true;
-		  //todo delete this
-		  /*if(nbrr instanceof Register.Arch nb){
-		  for(int v=0;v<regs.length;v++)
-			if(regs[v]==nb){
-			  conts[v]=true;
-			  break;
-			}
-		}*/
 	  }
 	  int i=0;
 	  for(;conts[i];i++);
