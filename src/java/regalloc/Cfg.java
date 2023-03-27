@@ -38,7 +38,8 @@ public class Cfg{
 	  yield j.label;
 	}
 	case JumpRegister jr->{
-	  last=null;//assume only used to return from function
+	  if(j.opcode==OpCode.JR)//JALR does nothing--oop function call
+		last=null;//assume only used to return from function
 	  yield null;
 	}
 	case Load l->null;
