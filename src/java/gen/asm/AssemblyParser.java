@@ -79,76 +79,40 @@ public final class AssemblyParser {
 		return new Instruction.LoadAddress(parseRegister(args.get(0)),parseLabel(args.get(1)));
 	  case TERNARY_ARITHMETIC:
 		checkArity(args,3,line);
-		return new Instruction.TernaryArithmetic(
-												 (OpCode.TernaryArithmetic)opcode,
-												 parseRegister(args.get(0)),
-												 parseRegister(args.get(1)),
-												 parseRegister(args.get(2)));
+		return new Instruction.TernaryArithmetic((OpCode.TernaryArithmetic)opcode,parseRegister(args.get(0)),parseRegister(args.get(1)),parseRegister(args.get(2)));
 	  case BINARY_ARITHMETIC:
 		checkArity(args,2,line);
-		return new Instruction.BinaryArithmetic(
-												(OpCode.BinaryArithmetic)opcode,
-												parseRegister(args.get(0)),
-												parseRegister(args.get(1)));
+		return new Instruction.BinaryArithmetic((OpCode.BinaryArithmetic)opcode,parseRegister(args.get(0)),parseRegister(args.get(1)));
 	  case UNARY_ARITHMETIC:
 		checkArity(args,1,line);
-		return new Instruction.UnaryArithmetic(
-											   (OpCode.UnaryArithmetic)opcode,
-											   parseRegister(args.get(0)));
-
+		return new Instruction.UnaryArithmetic((OpCode.UnaryArithmetic)opcode,parseRegister(args.get(0)));
 	  case JUMP:
 		checkArity(args,1,line);
-		return new Instruction.Jump(
-									(OpCode.Jump)opcode,
-									parseLabel(args.get(0)));
+		return new Instruction.Jump((OpCode.Jump)opcode,parseLabel(args.get(0)));
 	  case JUMP_REGISTER:
 		checkArity(args,1,line);
-		return new Instruction.JumpRegister(
-											(OpCode.JumpRegister)opcode,
-											parseRegister(args.get(0)));
+		return new Instruction.JumpRegister((OpCode.JumpRegister)opcode,parseRegister(args.get(0)));
 	  case BINARY_BRANCH:
 		checkArity(args,3,line);
-		return new Instruction.BinaryBranch(
-											(OpCode.BinaryBranch)opcode,
-											parseRegister(args.get(0)),
-											parseRegister(args.get(1)),
-											parseLabel(args.get(2)));
+		return new Instruction.BinaryBranch((OpCode.BinaryBranch)opcode,parseRegister(args.get(0)),parseRegister(args.get(1)),parseLabel(args.get(2)));
 	  case UNARY_BRANCH:
 		checkArity(args,2,line);
-		return new Instruction.UnaryBranch(
-										   (OpCode.UnaryBranch) opcode,
-										   parseRegister(args.get(0)),
-										   parseLabel(args.get(1)));
+		return new Instruction.UnaryBranch((OpCode.UnaryBranch) opcode,parseRegister(args.get(0)),parseLabel(args.get(1)));
 	  case ARITHMETIC_WITH_IMMEDIATE:
 		checkArity(args,3,line);
-		return new Instruction.ArithmeticWithImmediate(
-													   (OpCode.ArithmeticWithImmediate) opcode,
-													   parseRegister(args.get(0)),
-													   parseRegister(args.get(1)),
-													   parseImmediate(args.get(2)));
+		return new Instruction.ArithmeticWithImmediate((OpCode.ArithmeticWithImmediate) opcode,parseRegister(args.get(0)),parseRegister(args.get(1)),parseImmediate(args.get(2)));
 	  case LOAD:{
 		checkArity(args,2,line);
 		var memOperand=parseMemoryOperand(args.get(1));
-		return new Instruction.Load(
-									(OpCode.Load)opcode,
-									parseRegister(args.get(0)),
-									memOperand.getKey(),
-									memOperand.getValue());
+		return new Instruction.Load((OpCode.Load)opcode,parseRegister(args.get(0)),memOperand.getKey(),memOperand.getValue());
 	  }
 	  case STORE:
 		checkArity(args,2,line);
 		var memOperand=parseMemoryOperand(args.get(1));
-		return new Instruction.Store(
-									 (OpCode.Store)opcode,
-									 parseRegister(args.get(0)),
-									 memOperand.getKey(),
-									 memOperand.getValue());
+		return new Instruction.Store((OpCode.Store)opcode,parseRegister(args.get(0)),memOperand.getKey(),memOperand.getValue());
 	  case LOAD_IMMEDIATE:
 		checkArity(args,2,line);
-		return new Instruction.LoadImmediate(
-											 (OpCode.LoadImmediate)opcode,
-											 parseRegister(args.get(0)),
-											 parseImmediate(args.get(1)));
+		return new Instruction.LoadImmediate((OpCode.LoadImmediate)opcode,parseRegister(args.get(0)),parseImmediate(args.get(1)));
 	  case NULLARY:
 		checkArity(args,0,line);
 		return Instruction.Nullary.create((OpCode.Nullary)opcode);
@@ -161,7 +125,6 @@ public final class AssemblyParser {
 	if(args.size()!=expectedArity)
 	  throw new Error("The expected number of arguments was "+expectedArity+"; got "+args.size()+": "+line);
   }
-
   private static Register parseRegister(String name){
 	if(!name.codePoints().allMatch(Character::isJavaIdentifierPart))
 	  throw new Error("Expected a register name, got "+name);
@@ -170,7 +133,7 @@ public final class AssemblyParser {
 	  if(candidate.isEmpty())
 		throw new Error("Expected an architectural register name, got "+name);
 	  return candidate.get();
-	} else 
+	} else
 	  return Register.Virtual.get(name);
   }
   private static Label parseLabel(String name){

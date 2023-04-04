@@ -51,12 +51,10 @@ public class Test {
 	assertEqual(AssemblyParser.parseAssemblyItem("pushRegisters"),Instruction.Nullary.pushRegisters);
 	assertEqual(AssemblyParser.parseAssemblyItem("popRegisters"),Instruction.Nullary.popRegisters);
   }
-
   private static void assertEqual(AssemblyItem first,AssemblyItem second){
 	if(!first.equals(second))
 	  throw new Error(first+" does not equal "+second);
   }
-
   private static void assertCanRoundTrip(AssemblyProgram program){
 	// First, we convert our AssemblyProgram to a textual MIS assembly file. We will store the file in memory in
 	// the form of a string.

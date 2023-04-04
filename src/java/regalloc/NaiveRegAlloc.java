@@ -125,7 +125,6 @@ public final class NaiveRegAlloc implements AssemblyPass{
    * The singleton instance of {@link NaiveRegAlloc}.
    */
   public static final NaiveRegAlloc INSTANCE=new NaiveRegAlloc();
-
   @Override
   public AssemblyProgram apply(AssemblyProgram program){
 	return run(program);

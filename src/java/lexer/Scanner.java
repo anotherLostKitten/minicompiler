@@ -50,7 +50,6 @@ public class Scanner{
 	int r=input.read();
 	if(r==-1)
 	  return false;
-
 	peeked=r;
 	return true;
   }

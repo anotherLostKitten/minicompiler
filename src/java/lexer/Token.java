@@ -78,5 +78,3 @@ public class Token{
 	  return tokenClass.toString()+"("+data+")";
   }
 }
-
-

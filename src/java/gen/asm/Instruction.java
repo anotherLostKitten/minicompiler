@@ -74,7 +74,6 @@ public abstract sealed class Instruction extends AssemblyItem{
   public static final class BinaryArithmetic extends Instruction {
 	public final Register src1;
 	public final Register src2;
-
 	public BinaryArithmetic(OpCode.BinaryArithmetic opcode,Register src1,Register src2){
 	  super(opcode);
 	  this.src1=src1;
