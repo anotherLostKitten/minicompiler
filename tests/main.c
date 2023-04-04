@@ -1,7 +1,6 @@
 char test(char*arr){
   return arr[1];
 }
-
 int main(){
   int a;
   int b;

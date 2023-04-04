@@ -1,12 +1,10 @@
 #include"minic-stdlib.h"
-
 struct bazinga{
   int a;
   int b;
   char ss[9];
   int c;
 };
-
 void prntstruct(struct bazinga tp){
   print_i(tp.a);
   print_c(' ');
@@ -17,7 +15,6 @@ void prntstruct(struct bazinga tp){
   print_i(tp.c);
   print_c('\n');
 }
-
 struct bazinga bazinga(struct bazinga eggs){
   print_s((char*)"inb: ");
   prntstruct(eggs);
@@ -32,7 +29,6 @@ struct bazinga bazinga(struct bazinga eggs){
   prntstruct(eggs);
   return eggs;
 }
-
 int main(){
   struct bazinga azinga;
   struct bazinga cazinga;

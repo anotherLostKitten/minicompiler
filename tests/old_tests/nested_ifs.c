@@ -7,7 +7,6 @@ void main(){
   int*pp;
   char chars[10];
   int q;
-  
   if(a)
 	if(b+c){
 	  int b;
@@ -19,7 +18,6 @@ void main(){
 	e;
   while(*pp)return;
   //while(*(char*)chars)return;
-  
   if(q){
 	char q;
 	char b;

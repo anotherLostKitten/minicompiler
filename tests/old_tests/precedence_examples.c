@@ -3,7 +3,6 @@ struct node_t{
   char field2;
 };
 struct node_t n;
-
 void foo(){return;}
 int main(){
   int array[3][4];

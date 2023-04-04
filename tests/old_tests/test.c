@@ -4,13 +4,10 @@ struct truck{
   char****hello;
   void bazinga;
 };
-
 struct truck*duck;
-
 /*
 ^$&^*(#$^
 */
-
 void main(){
   while(n==1){
 	void hello;
