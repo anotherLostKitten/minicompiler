@@ -1,0 +1,37 @@
+program    ::= include* decl* EOF
+include    ::= "#include" STRING_LITERAL
+!decl 	   ::= structdecl | classdecl | vfdecl
+structdecl ::= structtype "{" (vardecl)+ "}" ";"
+!classdecl::= classtype ["extends" IDENT] "{" vardecl* (type IDENT funprams)* "}"
+vfdecl     ::= type IDENT (funprams | vararr)
+vardecl    ::= type IDENT vararr
+vararr     ::= ("[" INT_LITERAL "]")* ";"
+!type       ::= ("int" | "char" | "void" | structtype | classtype) ("*")*
+structtype ::= "struct" IDENT
+!classtype  ::= "class" IDENT
+funprams   ::= "(" params ")" block
+params     ::= [ type IDENT ("," type IDENT)* ]
+stmt       ::= block
+             | "while" "(" exp ")" stmt
+             | "if" "(" exp ")" stmt ["else" stmt]
+             | "return" [exp] ";"
+             | exp ";"
+block      ::= "{" (vardecl)* (stmt)* "}"
+exp ::= pr8 "=" exp
+pr8 ::= pr7 ("||" pr7)*
+pr7 ::= pr6 ("&&" pr6)*
+pr6 ::= pr5 ("=="|"!=" pr5)*
+pr5 ::= pr4 ("<"|">"|"<="|"=>" pr4)*
+pr4 ::= pr3 ("+"|"-" pr3)*
+pr3 ::= pr2 ("*"|"/"|"%" pr2)*
+pr2 ::= ("-"|"+"|"*"|"&") pr2
+      | "(" type ")" pr2 //must check also against "(" exp ")"
+	  | pr1
+!pr1 ::=	pr0 ( ("[" exp "]") | ("." IDENT | funcall) )*
+pr0 ::= "(" exp ")"
+      | IDENT
+	  | funcall
+	  | INT_LITERAL | CHAR_LITERAL | STRING_LITERAL
+	  | "sizeof" "(" type ")"
+!	  | "new" classtype "(" ")"
+funcall      ::= IDENT "(" [ exp ("," exp)* ] ")"
