@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 public final class ClassType implements Type{
   public final String name;
-  public ClassTypeDecl decl;
+  public ClassDecl decl;
   public ClassType(String name){
 	this.name=name;
   }

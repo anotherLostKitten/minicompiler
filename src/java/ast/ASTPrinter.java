@@ -40,6 +40,8 @@ public class ASTPrinter{
 	}
 	case StructType t->
 	  w.print("StructType("+t.name+")");
+	case ClassType t->
+	  w.print("ClassType("+t.name+")");
 	case ArrayType t->{
 	  w.print("ArrayType(");
 	  visit(t.type);
@@ -53,6 +55,28 @@ public class ASTPrinter{
 		w.print(",");
 		t();
 		visit(vd);
+	  }
+	  t--;
+	  t();
+	  w.print(")");
+	}
+	case ClassDecl cd->{
+	  w.print("ClassDecl(");
+	  visit(cd.type);
+	  if(cd.parent!=null){
+		w.print(",");
+		visit(cd.parent);
+	  }
+	  t++;
+	  for(VarDecl vd:cd.vs){
+		w.print(",");
+		t();
+		visit(vd);
+	  }
+	  for(FunDecl fd:cd.fs){
+		w.print(",");
+		t();
+		visit(fd);
 	  }
 	  t--;
 	  t();
@@ -88,6 +112,13 @@ public class ASTPrinter{
 		w.print(",");
 		visit(r);
 	  }
+	  w.print(")");
+	}
+	case ClassFunCallExpr cfc->{
+	  w.print("ClassFunCallExpr(");
+	  visit(cfc.object);
+	  w.print(",");
+	  visit(cfc.call);
 	  w.print(")");
 	}
 	case BinOp bo->{
@@ -129,6 +160,11 @@ public class ASTPrinter{
 	  visit(tc.t);
 	  w.print(",");
 	  visit(tc.e);
+	  w.print(")");
+	}
+	case ClassInstantiationExpr cie->{
+	  w.print("ClassInstantiationExpr(");
+	  visit(cie.t);
 	  w.print(")");
 	}
 	case Assign as->{

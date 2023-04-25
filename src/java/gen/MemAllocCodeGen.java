@@ -23,6 +23,7 @@ public class MemAllocCodeGen extends CodeGen{
 	case BaseType t->{}
 	case PointerType t->{}
 	case StructType t->{}
+	case ClassType t->{}//todo? i think do nothing
 	case ArrayType t->{}
 	case StructTypeDecl std->{
 	  g=2;
@@ -32,6 +33,7 @@ public class MemAllocCodeGen extends CodeGen{
 	  std.size=fpo;
 	  g=0;
 	}
+	case ClassDecl cd->{}//todo calculate size of declared class
 	case VarDecl vd->{
 	  vd.s=(vd.type.size()-1|3)+1;//to pad
 	  vd.g=g==0;
@@ -88,6 +90,10 @@ public class MemAllocCodeGen extends CodeGen{
 	  if(fc.type instanceof StructType st)
 		fc.o=fpo-=(st.size()-1|3)+1;//just allocate space on the stack for return values of any funciton which returns a struct (lazy solution)
 	}
+	case ClassFunCallExpr cfc->{//todo? think just need check for str literals?
+	  visit(cfc.object);
+	  visit(cfc.call);
+	}
 	case BinOp bo->{
 	  visit(bo.rhs);
 	  visit(bo.lhs);
@@ -105,6 +111,7 @@ public class MemAllocCodeGen extends CodeGen{
 	case SizeOfExpr so->{}
 	case TypecastExpr tc->
 	  visit(tc.e);
+	case ClassInstantiationExpr cie->{}//todo this probably gens some memory
 	case Assign as->{
 	  visit(as.lhs);
 	  visit(as.rhs);

@@ -109,6 +109,7 @@ public class ExprCodeGen extends CodeGen{
 	  }
 	  ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,e.fd.co);
 	}
+	case ClassFunCallExpr cfc->{}//todo class function calls
 	case BinOp e->{
 	  Register l=visit(e.lhs),r;
 	  switch(e.op){
@@ -208,7 +209,7 @@ public class ExprCodeGen extends CodeGen{
 		ts.emit(OpCode.ADD,vr(),tmp2,arr);
 	  }
 	}
-	case FieldAccessExpr e->{
+	case FieldAccessExpr e->{//todo access class fields
 	  Register st=visit(e.struct);
 	  int o=((StructType)e.struct.type).decl.vst.get(e.field).o;
 	  if(e.type instanceof PointerType||e.type==BaseType.INT)
@@ -234,7 +235,8 @@ public class ExprCodeGen extends CodeGen{
 	  ts.emit(OpCode.LI,vr(),e.t.size());
 	case TypecastExpr e->
 	  this.rvr=visit(e.e);
-	case Assign e->{
+	case ClassInstantiationExpr cie->{}//todo class instantiation expr
+	case Assign e->{//todo assigning class
 	  if(e.lhs instanceof VarExpr ve&&ve.vd.r){
 		Register a2=visit(e.rhs);
 		this.rvr=ve.vd.vr;
@@ -289,7 +291,7 @@ public class ExprCodeGen extends CodeGen{
 		ts.emit(OpCode.ADD,vr(),tmp2,arr);
 	  }
 	}
-	case FieldAccessExpr e->{
+	case FieldAccessExpr e->{//todo field access class?
 	  Register st=visitAddress(e.struct);
 	  int o=((StructType)e.struct.type).decl.vst.get(e.field).o;
 	  ts.emit(OpCode.ADDI,vr(),st,o);

@@ -20,6 +20,7 @@ public class NameAnalyzer extends BaseSemanticAnalyzer{
 	case BaseType t->{}
 	case PointerType t->{}
 	case StructType t->{}
+	case ClassType t->{}
 	case ArrayType t->{}
 	case StructTypeDecl std->{
 	  scope=new Scope(scope);
@@ -27,6 +28,7 @@ public class NameAnalyzer extends BaseSemanticAnalyzer{
 		visit(v);
 	  scope=scope.outer;
 	}
+	case ClassDecl cd->{}//todo
 	case VarDecl vd->{
 	  if(scope.lookupCurrent(vd.name)!=null)
 		error("VarDecl already used "+vd.name);
@@ -68,6 +70,7 @@ public class NameAnalyzer extends BaseSemanticAnalyzer{
 	  for(Expr r:fc.args)
 		visit(r);
 	}
+	case ClassFunCallExpr cfc->{}//todo
 	case BinOp bo->{
 	  visit(bo.lhs);
 	  visit(bo.rhs);
@@ -85,6 +88,7 @@ public class NameAnalyzer extends BaseSemanticAnalyzer{
 	case SizeOfExpr so->{}
 	case TypecastExpr tc->
 	  visit(tc.e);
+	case ClassInstantiationExpr cie->{}
 	case Assign as->{
 	  visit(as.lhs);
 	  visit(as.rhs);

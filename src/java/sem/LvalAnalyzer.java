@@ -15,6 +15,11 @@ public class LvalAnalyzer extends BaseSemanticAnalyzer{
 	}
 	case Type t->false;
 	case StructTypeDecl std->false;
+	case ClassDecl cd->{
+	  for(FunDecl fd:cd.fs)
+		visit(fd);
+	  yield false;
+	}
 	case VarDecl vd->false;
 	case FunDecl fd->visit(fd.block);
 	case IntLiteral i->false;
@@ -24,6 +29,11 @@ public class LvalAnalyzer extends BaseSemanticAnalyzer{
 	case FunCallExpr fc->{
 	  for(Expr r:fc.args)
 		visit(r);
+	  yield false;
+	}
+	case ClassFunCallExpr cfc->{
+	  visit(cfc.object);
+	  visit(cfc.call);
 	  yield false;
 	}
 	case BinOp bo->{
@@ -54,6 +64,7 @@ public class LvalAnalyzer extends BaseSemanticAnalyzer{
 	  visit(tc.e);
 	  yield false;
 	}
+	case ClassInstantiationExpr cie->false;
 	case Assign as->{
 	  if(!visit(as.lhs))
 		error("Assign lval error");

@@ -33,6 +33,8 @@ public class DotPrinter{
 	}
 	case StructType t->
 	  printv(n,"StructType("+t.name+")");
+	case ClassType t->
+	  printv(n,"ClassType("+t.name+")");
 	case ArrayType t->{
 	  printv(n,"ArrayType["+t.num+"]");
 	  printe(n,visit(t.type));
@@ -42,6 +44,16 @@ public class DotPrinter{
 	  printe(n,visit(std.type));
 	  for(VarDecl vd:std.vs)
 		printe(n,visit(vd));
+	}
+	case ClassDecl cd->{
+	  printv(n,"ClassDecl");
+	  printe(n,visit(cd.type));
+	  if(cd.parent!=null)
+		printe(n,visit(cd.parent));
+	  for(VarDecl vd:cd.vs)
+		printe(n,visit(vd));
+	  for(FunDecl fd:cd.fs)
+		printe(n,visit(fd));
 	}
 	case VarDecl vd->{
 	  printv(n,"VarDecl("+vd.name+")");
@@ -66,6 +78,11 @@ public class DotPrinter{
 	  printv(n,"FunCallExpr("+fc.f+")");
 	  for(Expr r:fc.args)
 		printe(n,visit(r));
+	}
+	case ClassFunCallExpr cfc->{
+	  printv(n,"ClassFunCallExpr");
+	  printe(n,visit(cfc.object));
+	  printe(n,visit(cfc.call));
 	}
 	case BinOp bo->{
 	  printv(n,"BinOp");
@@ -100,6 +117,10 @@ public class DotPrinter{
 	  printv(n,"TypecastExpr");
 	  printe(n,visit(tc.t));
 	  printe(n,visit(tc.e));
+	}
+	case ClassInstantiationExpr cie->{
+	  printv(n,"ClassInstantiationExpr");
+	  printe(n,visit(cie.t));
 	}
 	case Assign as->{
 	  printv(n,"Assign");

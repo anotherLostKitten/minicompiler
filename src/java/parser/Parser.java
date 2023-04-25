@@ -126,14 +126,14 @@ public class Parser{
 	List<FunDecl>fs=new ArrayList<FunDecl>();
 	expect(TokenClass.LBRA);
 	while(!accept(TokenClass.RBRA,TokenClass.EOF)){
-	  Type t=parseType();
+	  Type tt=parseType();
 	  String s=token.data;
 	  expect(TokenClass.IDENTIFIER);
 	  if(accept(TokenClass.LPAR)||!fs.isEmpty()){
 		List<VarDecl>ps=parseFunprams();
-		fs.add(new FunDecl(t,s,ps,parseBlock()));
+		fs.add(new FunDecl(tt,s,ps,parseBlock()));
 	  }else
-		vs.add(parseVararr(t,s));
+		vs.add(parseVararr(tt,s));
 	}
 	expect(TokenClass.RBRA);
 	return new ClassDecl(t,p,vs,fs);
@@ -420,11 +420,11 @@ public class Parser{
 	case NEW:
 	  nextToken();
 	  expect(TokenClass.CLASS);
-	  ClassType t=new ClassType(token.data);
+	  ClassType tt=new ClassType(token.data);
 	  expect(TokenClass.IDENTIFIER);
 	  expect(TokenClass.LPAR);
 	  expect(TokenClass.RPAR);
-	  return new ClassInstantiationExpr(t);
+	  return new ClassInstantiationExpr(tt);
 	}
 	error();
 	nextToken();

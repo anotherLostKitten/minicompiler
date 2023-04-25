@@ -31,6 +31,7 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  error("StructType references undefined struct "+t.name);
 	  yield BaseType.UNKNOWN;
 	}
+	case ClassType t->BaseType.UNKNOWN;//todo
 	case ArrayType t->{
 	  visit(t.type);
 	  yield t;
@@ -47,6 +48,7 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 		structs.put(std.type.name,std);
 	  yield BaseType.NONE;
 	}
+	case ClassDecl cd->BaseType.UNKNOWN;//todo
 	case VarDecl vd->{
 	  switch(vd.type){
 	  case BaseType t->{
@@ -109,6 +111,7 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  }
 	  yield fc.type;
 	}
+	case ClassFunCallExpr cfc->BaseType.UNKNOWN;//todo
 	case BinOp bo->{
 	  bo.type=switch(bo.op){
 	  case NE,EQ->{
@@ -223,6 +226,7 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  };
 	  yield tc.type;
 	}
+	case ClassInstantiationExpr cie->BaseType.UNKNOWN;//todo
 	case Assign as->{
 	  visit(as.lhs);
 	  visit(as.rhs);
