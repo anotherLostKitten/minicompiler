@@ -5,58 +5,49 @@ import util.Position;
  */
 public class Token{
   public enum TokenClass{
-	// the \ (backslash) is used as an escape character in the regular expression below
-	// ' is used to enclose characters while " is used to enclose strings
-	IDENTIFIER, // ('a'|...|'z'|'A'|...|'Z'|'_')('0'|...|'9'|'a'|...|'z'|'A'|...|'Z'|'_')*
-	ASSIGN, // '='
-	// delimiters
-	LBRA,  // '{' // left brace
-	RBRA,  // '}' // right brace
-	LPAR,  // '(' // left parenthesis
-	RPAR,  // ')' // right parenthesis
-	LSBR,  // '[' // left square brace
-	RSBR,  // ']' // left square brace
-	SC,    // ';' // semicolon
-	COMMA, // ','
-	// types
-	INT,  // "int"
-	VOID, // "void"
-	CHAR, // "char"
-	// keywords
-	IF,     // "if"
-	ELSE,   // "else"
-	WHILE,  // "while"
-	RETURN, // "return"
-	STRUCT, // "struct"
-	SIZEOF, // "sizeof"
-	// include
-	INCLUDE, // "#include"
-	// literals
-	STRING_LITERAL, // \".*\"  any sequence of characters enclosed within two double quote " (please be aware of the escape character backslash \)
-	INT_LITERAL,    // ('0'|...|'9')+
-	CHAR_LITERAL,   // \'('a'|...|'z'|'A'|...|'Z'|'\t'|'\b'|'\n'|'\r'|'\f'|'\''|'\"'|'\\'|'\0'|'.'|','|'_'|...)\'  a character starts and end with a single quote '
-	// logical operators
-	LOGAND, // "&&"
-	LOGOR,  // "||"
-	// comparisons
-	EQ, // "=="
-	NE, // "!="
-	LT, // '<'
-	GT, // '>'
-	LE, // "<="
-	GE, // ">="
-    // operators
-	PLUS,    // '+'
-	MINUS,   // '-'
-	ASTERIX, // '*'  // can be used for multiplication or pointers
-	DIV,     // '/'
-	REM,     // '%'
-	AND,     // '&'
-	// struct member access
-	DOT, // '.'
-	// special tokens
-	EOF,    // signal end of file
-	INVALID // in case we cannot recognise a character as part of a valid token
+	IDENTIFIER,//('a'-'z'|'A'-'Z'|'_')('0'-'9'|'a'-'z'|'A'-'Z'|'_')*
+	ASSIGN,//'='
+	LBRA,//'{'
+	RBRA,//'}'
+	LPAR,//'('
+	RPAR,//')'
+	LSBR,//'['
+	RSBR,//']'
+	SC,//';'
+	COMMA,
+	INT,
+	VOID,
+	CHAR,
+	IF,
+	ELSE,
+	WHILE,
+	RETURN,
+	STRUCT,
+	SIZEOF,
+	CLASS,
+	NEW,
+	EXTENDS,
+	INCLUDE,//"#include"
+	STRING_LITERAL,//\".*\"
+	INT_LITERAL,//('0'|...|'9')+
+	CHAR_LITERAL,//\'('a'-'z'|'A'-'Z'|'\t'|'\b'|'\n'|'\r'|'\f'|'\''|'\"'|'\\'|'\0'|'.'|','|'_'|...)\'
+	LOGAND,//"&&"
+	LOGOR, //"||"
+	EQ,//"=="
+	NE,//"!="
+	LT,//'<'
+	GT,//'>'
+	LE,//"<="
+	GE,//">="
+	PLUS,
+	MINUS,
+	ASTERIX,//'*'--can be used for multiplication or pointers
+	DIV,//'/'
+	REM,//'%'
+	AND,//'&'
+	DOT,//'.'
+	EOF,//signal end of file
+	INVALID//in case we cannot recognise a character as part of a valid token
   }
   public final TokenClass tokenClass;
   public final String data;

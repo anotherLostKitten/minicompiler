@@ -278,6 +278,12 @@ public class Tokeniser{
 		return new Token(TokenClass.STRUCT,ln,cn);
 	  if(s.equals("sizeof"))
 		return new Token(TokenClass.SIZEOF,ln,cn);
+	  if(s.equals("class"))
+		return new Token(TokenClass.CLASS,ln,cn);
+	  if(s.equals("new"))
+		return new Token(TokenClass.NEW,ln,cn);
+	  if(s.equals("extends"))
+		return new Token(TokenClass.EXTENDS,ln,cn);
 	  return new Token(TokenClass.IDENTIFIER,s,ln,cn);
 	}
   }
