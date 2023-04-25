@@ -9,7 +9,7 @@ We encourage you to regularly check this repository for changes.
 2. [Part 2 (ast builder + semantic analyser)](desc/part2): Friday, 24 February 2023 at 5pm, weight = 20%
 3. [Part 3 (code generator)](desc/part3): Friday, 17 March 2023, at 5pm, weight = 20%
 4. [Part 4 (register allocator)](desc/part4): Friday 7 April 2023, at 5pm, weight = 20%
-5. Part 5 (object-oriented features): Friday 28 April 2023, at 5pm, weight = 20%
+5. [Part 5 (object-oriented features)](desc/part5): Friday 28 April 2023, at 5pm, weight = 20%
 
 Specific instructions for each part can be found above by clicking on the part name.
 
@@ -47,7 +47,7 @@ the software should be directly available from your distribution package manager
 You can test if you already have Java development kit installed by typing:
 ```
 javac -version
-``` 
+```
 If this returns a version equals to, or higher than 17, then you are good to go.
 Otherwise, follow the link below for instructions on how to install manually the JDK 17 (feel free to install any newer version if you wish to):
 
@@ -60,7 +60,7 @@ Again, if you are using a CS lab machine, this software should already be instal
 If you are using your machine, you can test if the software is there by typing:
 ```
 ant -version
-``` 
+```
 Any recent-enough (i.e. less than 5 years old) version should do.
 In case Ant is not installed on your system, you can install it manually following these instructions:
 
@@ -172,7 +172,7 @@ If in doubt, HTTPS is sufficient.
 ## Development environment (editor) setup
 You can choose to use any development environment for your project, such as IntelliJ, Eclipse, Emacs, Vim or your favourite text editor.
 Choose whichever you are confident with.
-However, we highly recommend using IntelliJ Idea since you will benefit from features such as the debugger, and the project is already setup to be used with IntelliJ. 
+However, we highly recommend using IntelliJ Idea since you will benefit from features such as the debugger, and the project is already setup to be used with IntelliJ.
 
 IntelliJ is available on the CS lab machines.
  To launch it on the CS machines, open a terminal and simply type:
@@ -194,7 +194,7 @@ If you are asked whether to overwrite an existing .iml file, select the overwrit
 
 To confirm that the project is setup correctly, you can try to run the Main.java file directly from the idea.
 To do so, right click the Main file in the src directory.
-In the context menu, select the "Run Main.main()" option. 
+In the context menu, select the "Run Main.main()" option.
 The program should now have run successfully
 
 
@@ -283,7 +283,7 @@ Note that we only support Scala version 2.11.12.
 ### Building
 If the automarker detect the presence of a *build.sbt* file in the root folder, it will compile your sources with SBT (`sbt compile`).
 Note that to ensure that you are not using any third party libraries, we will replace the *build.sbt* with our own version whose content is:
- 
+
 ```
 scalaVersion := "2.11.12"
 
@@ -326,4 +326,3 @@ Otherwise you will end up with two Main classes and nothing will work with the a
 To run your compiler, the automarker uses the following command:
 
 `java -cp bin/:PATH_TO/scala-compiler-2.11.12.jar:PATH_TO/scala-library-2.11.12.jar:PATH_TO/scala-reflect-2.11.12.jar Main`
-

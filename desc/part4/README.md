@@ -1,7 +1,7 @@
 # Part IV : Register Allocation
 
 
-The goal of part IV is to replace the naive register allocator by a proper register allocator. 
+The goal of part IV is to replace the naive register allocator by a proper register allocator.
 As seen in the lecture, you will have to implement:
   1. liveness analysis on a control-flow graph, and
   2. Chaitin's graph colouring algorithm.
@@ -44,6 +44,13 @@ However, if you want to ensure a faster convergence time, you should compute the
 
 The output of the liveness analysis should be a liveIn and liveOut set for each node in the CFG.
 
+Please note that there is a corner case that you need to handle. in the case where an instruction defines a register that is never used.
+In such case, you must either:
+- remove this "dead" instruction;
+- or you must add the register defined in the liveOut set of the corresponding node (but just once at the end of calculating liveness).
+
+Without doing one of these, your allocator will produce broken code.
+
 ## 3. Interference Graph
 
 Once you have performed liveness analysis, your next step should consist of building the interference graph as seen in the lecture.
@@ -61,7 +68,7 @@ Note that your code generator is of course free to use the other classical MIPS 
 
 > **Hint:** Contrary to what the lecture slides might suggest, you may not want to actually remove nodes from the graph when adding them to the stack as this would complicate your job.
 Instead, we suggest that you simply add them to the stack and when you request the list of neighbours from a node, you can simply discard the nodes from that list that appear on the stack.
- 
+
 
 ### Spilling
 
@@ -77,9 +84,10 @@ Your implementation of the algorithm should produce two results: a set of virtua
 Using these two outputs, you should then go back to the list of instructions and patch it up to replace each virtual registers with either an architectural register, or with a load/store instruction if the virtual register is spilled.
 You should also at this point expand the two pseudo-instructions `pushRegisters` and `popRegisters`.
 
-You will find it useful to reuse the existing logic from the `NaiveRegAlloc` when performing this step.
-As mentioned, you should never need more than three registers when spilling with your register allocator.
-Therefore, if you reuse some of the code from the naive reigster allocator, you should really only be using three registers and not six as the original code suggests.
+You will find it useful to reuse some of the existing logic from the `NaiveRegAlloc` when performing this step.
+As already mentioned, you should never need more than three registers when spilling with your register allocator.
+In fact, you can even do better and only use two registers, lowering the number of reserved registers for spilling.
+This will result in less load/store in case of high register pressure.
 
 
 ## Debugging Tip: Promote variables to registers
@@ -125,7 +133,7 @@ int foo(int a     /* stack allocated */) {
   ptr = &j;
   ...
 }
-``` 
+```
 
 > **Important:** Variable-to-register promotion is *optional.* We will not evaluate this part of the assignment. We simply recommend it as a debugging tool.
 
@@ -139,4 +147,3 @@ int foo(int a     /* stack allocated */) {
 ## Updated Files
 
 * `Main.java` has been updated to provide a new commandline argument to call the graph colouring register allocator.
-
