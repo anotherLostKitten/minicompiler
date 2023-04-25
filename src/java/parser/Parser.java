@@ -80,16 +80,17 @@ public class Parser{
 	while(!accept(TokenClass.EOF))
 	  if(accept(TokenClass.STRUCT)&&lookAhead(1).tokenClass==TokenClass.IDENTIFIER&&lookAhead(2).tokenClass==TokenClass.LBRA)
 		ds.add(parseStructDecl());
+	  else if(accept(TokenClass.CLASS)&&lookAhead(1).tokenClass==TokenClass.IDENTIFIER&&(lookAhead(2).tokenClass==TokenClass.LBRA||lookAhead(2).tokenClass==TokenClass.EXTENDS))
+		ds.add(parseClassDecl());
 	  else{
 		Type t=parseType();
 		String s=token.data;
 		expect(TokenClass.IDENTIFIER);
-		if(!accept(TokenClass.LPAR))
-		  ds.add(parseVararr(t,s));
-		else{
+		if(accept(TokenClass.LPAR)){
 		  List<VarDecl>ps=parseFunprams();
 		  ds.add(new FunDecl(t,s,ps,parseBlock()));
-		}
+		}else
+		  ds.add(parseVararr(t,s));
 	  }
 	return new Program(ds);
   }
@@ -111,6 +112,31 @@ public class Parser{
     expect(TokenClass.RBRA);
 	expect(TokenClass.SC);
 	return new StructTypeDecl(t,vs);
+  }
+  private ClassDecl parseClassDecl(){
+	expect(TokenClass.CLASS);
+	ClassType t=new ClassType(token.data),p=null;
+	expect(TokenClass.IDENTIFIER);
+	if(accept(TokenClass.EXTENDS)){
+	  nextToken();
+	  p=new ClassType(token.data);
+	  expect(TokenClass.IDENTIFIER);
+	}
+	List<VarDecl>vs=new ArrayList<VarDecl>();
+	List<FunDecl>fs=new ArrayList<FunDecl>();
+	expect(TokenClass.LBRA);
+	while(!accept(TokenClass.RBRA,TokenClass.EOF)){
+	  Type t=parseType();
+	  String s=token.data;
+	  expect(TokenClass.IDENTIFIER);
+	  if(accept(TokenClass.LPAR)||!fs.isEmpty()){
+		List<VarDecl>ps=parseFunprams();
+		fs.add(new FunDecl(t,s,ps,parseBlock()));
+	  }else
+		vs.add(parseVararr(t,s));
+	}
+	expect(TokenClass.RBRA);
+	return new ClassDecl(t,p,vs,fs);
   }
   private VarDecl parseVardecl(){
 	Type t=parseType();
@@ -140,6 +166,11 @@ public class Parser{
 	case STRUCT:
 	  nextToken();
 	  t=new StructType(token.data);
+	  expect(TokenClass.IDENTIFIER);
+	  break;
+	case CLASS:
+	  nextToken();
+	  t=new ClassType(token.data);
 	  expect(TokenClass.IDENTIFIER);
 	  break;
 	case INT:
@@ -346,8 +377,11 @@ public class Parser{
 		expect(TokenClass.RSBR);
 	  }else if(accept(TokenClass.DOT)){
 		nextToken();
-		l=new FieldAccessExpr(l,token.data);
-		expect(TokenClass.IDENTIFIER);
+		if(lookAhead(1).tokenClass!=TokenClass.LPAR){
+		  l=new FieldAccessExpr(l,token.data);
+		  expect(TokenClass.IDENTIFIER);
+		}else
+		  l=new ClassFunCallExpr(l,parseFuncall());
 	  }else
 		return l;
 	}
@@ -383,6 +417,14 @@ public class Parser{
 	  Type t=parseType();
 	  expect(TokenClass.RPAR);
 	  return new SizeOfExpr(t);
+	case NEW:
+	  nextToken();
+	  expect(TokenClass.CLASS);
+	  ClassType t=new ClassType(token.data);
+	  expect(TokenClass.IDENTIFIER);
+	  expect(TokenClass.LPAR);
+	  expect(TokenClass.RPAR);
+	  return new ClassInstantiationExpr(t);
 	}
 	error();
 	nextToken();
