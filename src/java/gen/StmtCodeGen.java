@@ -6,7 +6,7 @@ public class StmtCodeGen extends CodeGen{
 	this.asmProg=asmProg;
   }
   void visit(Stmt z){
-	AssemblyProgram.Section ts=asmProg.getCurrentSection();	
+	AssemblyProgram.Section ts=asmProg.getCurrentSection();
 	switch(z){
 	case Block b->{
 	  //need not handle varDecl (memory allocator takes care of them)
@@ -53,7 +53,7 @@ public class StmtCodeGen extends CodeGen{
 	  if(r.e!=null){
 		Register v=(new ExprCodeGen(asmProg)).visit(r.e);
 		if(r.e.type instanceof StructType s){
-		  Register cp=Register.Virtual.create();//todo? should i make each iter.?
+		  Register cp=Register.Virtual.create();
 		  for(int i=0;i<s.size();i+=4){
 			ts.emit(OpCode.LW,cp,v,i);
 			ts.emit(OpCode.SW,cp,Register.Arch.fp,i+4);

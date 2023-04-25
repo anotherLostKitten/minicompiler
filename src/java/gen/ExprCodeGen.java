@@ -52,7 +52,7 @@ public class ExprCodeGen extends CodeGen{
 	case ChrLiteral e->
 	  ts.emit(OpCode.LI,vr(),(int)e.v);
 	case VarExpr e->{
-	  if(e.vd.g){//todo? structs, arrays, but i think is ok
+	  if(e.vd.g){
 		Register va=Register.Virtual.create();
 		ts.emit(OpCode.LA,va,e.vd.l);
 		if(e.type instanceof PointerType||e.type==BaseType.INT)
@@ -84,7 +84,7 @@ public class ExprCodeGen extends CodeGen{
 		else if(pr.type==BaseType.CHAR||pr.type==BaseType.VOID)
 		  ts.emit(OpCode.SB,v,Register.Arch.sp,0);
 		else{
-		  Register cp=Register.Virtual.create();//todo? should i make each iter?
+		  Register cp=Register.Virtual.create();
 		  for(int j=0;j<pr.type.size();j+=4){
 			ts.emit(OpCode.LW,cp,v,j);
 			ts.emit(OpCode.SW,cp,Register.Arch.sp,j);
@@ -99,8 +99,8 @@ public class ExprCodeGen extends CodeGen{
 		ts.emit(OpCode.LW,vr(),Register.Arch.sp,4);
 	  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
 		ts.emit(OpCode.LB,vr(),Register.Arch.sp,4);
-	  else{//todo -- no clue honestly...
-		Register cp=Register.Virtual.create();//todo? should i make each iter?
+	  else{
+		Register cp=Register.Virtual.create();
 		for(int i=0;i<e.type.size();i+=4){
 		  ts.emit(OpCode.LW,cp,Register.Arch.sp,i+4);
 		  ts.emit(OpCode.SW,cp,Register.Arch.fp,i+e.o);
@@ -201,7 +201,7 @@ public class ExprCodeGen extends CodeGen{
 		Register tmp=Register.Virtual.create();
 		ts.emit(OpCode.ADD,tmp,ind,arr);
 		ts.emit(OpCode.LB,vr(),tmp,0);
-	  }else{//todo? idk if this is correct
+	  }else{
 		Register tmp=Register.Virtual.create(),tmp2=Register.Virtual.create();
 		ts.emit(OpCode.LI,tmp,e.arr.type.size());
 		ts.emit(OpCode.MUL,tmp2,tmp,ind);
@@ -215,7 +215,7 @@ public class ExprCodeGen extends CodeGen{
 		ts.emit(OpCode.LW,vr(),st,o);
 	  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
 		ts.emit(OpCode.LB,vr(),st,o);
-	  else//todo? idk if this is correct
+	  else
 		ts.emit(OpCode.ADDI,vr(),st,o);
 	}
 	case ValueAtExpr e->{
@@ -225,7 +225,7 @@ public class ExprCodeGen extends CodeGen{
 	  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
 		ts.emit(OpCode.LB,vr(),vl,0);
 	  else
-		this.rvr=vl;//todo? i think this is fine
+		this.rvr=vl;
 	}
 	case AddressOfExpr e->{
 	  this.rvr=visitAddress(e.e);
@@ -233,7 +233,7 @@ public class ExprCodeGen extends CodeGen{
 	case SizeOfExpr e->
 	  ts.emit(OpCode.LI,vr(),e.t.size());
 	case TypecastExpr e->
-	  this.rvr=visit(e.e);//todo? pretty sure i don't need to do anything
+	  this.rvr=visit(e.e);
 	case Assign e->{
 	  if(e.lhs instanceof VarExpr ve&&ve.vd.r){
 		Register a2=visit(e.rhs);
@@ -248,7 +248,7 @@ public class ExprCodeGen extends CodeGen{
 		Register a2=visitAddress(e.lhs);
 		this.rvr=visit(e.rhs);
 		if(e.type instanceof StructType s){
-		  Register cp=Register.Virtual.create();//todo? should i make each iter.?
+		  Register cp=Register.Virtual.create();
 		  for(int i=0;i<s.size();i+=4){
 			ts.emit(OpCode.LW,cp,this.rvr,i);
 			ts.emit(OpCode.SW,cp,a2,i);
@@ -295,7 +295,7 @@ public class ExprCodeGen extends CodeGen{
 	  ts.emit(OpCode.ADDI,vr(),st,o);
 	}
 	case ValueAtExpr e->
-	  this.rvr=visit(e.e);//todo? i think this is fine
+	  this.rvr=visit(e.e);
 	case default->
 	  throw new IllegalStateException("Unreachable not an lval");
 	};
