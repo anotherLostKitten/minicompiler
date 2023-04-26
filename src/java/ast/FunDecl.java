@@ -6,7 +6,7 @@ public final class FunDecl extends Decl{
   public final List<VarDecl>params;
   public final Block block;
   public final boolean sc;
-  public int size,co,rvo;
+  public int size,co,rvo,vto=-1;
   public Label in,out;
   public FunDecl(Type type,String name,List<VarDecl>params,Block block){
 	this.type=type;

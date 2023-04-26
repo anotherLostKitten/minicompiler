@@ -64,8 +64,9 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 		cd.vst=new LinkedHashMap<String,VarDecl>();
 		cd.vt=new LinkedHashMap<String,FunDecl>();
 	  }else{
-		cd.vst=new LinkedHashMap<String,VarDecl>(classes.get(cd.parent.name).vst);
-		cd.vt=new LinkedHashMap<String,FunDecl>(classes.get(cd.parent.name).vt);
+		cd.parent.decl=classes.get(cd.parent.name);
+		cd.vst=new LinkedHashMap<String,VarDecl>(cd.parent.decl.vst);
+		cd.vt=new LinkedHashMap<String,FunDecl>(cd.parent.decl.vt);
 	  }
 	  for(VarDecl vd:cd.vs){
 		visit(vd);

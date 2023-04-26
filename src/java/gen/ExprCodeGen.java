@@ -209,9 +209,15 @@ public class ExprCodeGen extends CodeGen{
 		ts.emit(OpCode.ADD,vr(),tmp2,arr);
 	  }
 	}
-	case FieldAccessExpr e->{//todo access class fields
+	case FieldAccessExpr e->{//todo? access class fields?
 	  Register st=visit(e.struct);
-	  int o=((StructType)e.struct.type).decl.vst.get(e.field).o;
+	  int o;
+	  if(e.struct.type instanceof StructType ss)
+		o=ss.decl.vst.get(e.field).o;
+	  else if(e.struct.type instanceof ClassType cs)
+		o=cs.decl.vst.get(e.field).o;
+	  else
+		throw new IllegalStateException("FieldAccessExpr fetch not struct or class");
 	  if(e.type instanceof PointerType||e.type==BaseType.INT)
 		ts.emit(OpCode.LW,vr(),st,o);
 	  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
@@ -235,12 +241,17 @@ public class ExprCodeGen extends CodeGen{
 	  ts.emit(OpCode.LI,vr(),e.t.size());
 	case TypecastExpr e->
 	  this.rvr=visit(e.e);
-	case ClassInstantiationExpr cie->{}//todo class instantiation expr
+	case ClassInstantiationExpr cie->{//todo? check this?
+	  ts.emit(OpCode.ADDI,Register.Arch.a0,Register.Arch.zero,cie.t.decl.size);
+	  ts.emit(OpCode.LI,Register.Arch.v0,9);
+	  ts.emit(OpCode.SYSCALL);
+	  this.rvr=Register.Arch.v0;
+	}
 	case Assign e->{//todo assigning class
 	  if(e.lhs instanceof VarExpr ve&&ve.vd.r){
 		Register a2=visit(e.rhs);
 		this.rvr=ve.vd.vr;
-		if(e.type instanceof PointerType||e.type==BaseType.INT)
+		if(e.type instanceof PointerType||e.type instanceof ClassType||e.type==BaseType.INT)
 		  ts.emit(OpCode.ADD,this.rvr,a2,Register.Arch.zero);
 		else if(e.type==BaseType.CHAR)
 		  ts.emit(OpCode.ANDI,this.rvr,a2,255);
@@ -256,7 +267,7 @@ public class ExprCodeGen extends CodeGen{
 			ts.emit(OpCode.SW,cp,a2,i);
 		  }
 		  this.rvr=a2;
-		}else if(e.type instanceof PointerType||e.type==BaseType.INT)
+		}else if(e.type instanceof PointerType||e.type instanceof ClassType||e.type==BaseType.INT)
 		  ts.emit(OpCode.SW,this.rvr,a2,0);
 		else if(e.type==BaseType.CHAR)
 		  ts.emit(OpCode.SB,this.rvr,a2,0);
@@ -291,10 +302,14 @@ public class ExprCodeGen extends CodeGen{
 		ts.emit(OpCode.ADD,vr(),tmp2,arr);
 	  }
 	}
-	case FieldAccessExpr e->{//todo field access class?
+	case FieldAccessExpr e->{//todo? field access class?
 	  Register st=visitAddress(e.struct);
-	  int o=((StructType)e.struct.type).decl.vst.get(e.field).o;
-	  ts.emit(OpCode.ADDI,vr(),st,o);
+	  if(e.struct.type instanceof StructType ss)
+		ts.emit(OpCode.ADDI,vr(),st,ss.decl.vst.get(e.field).o);
+	  else if(e.struct.type instanceof ClassType cs)
+		ts.emit(OpCode.ADDI,vr(),st,cs.decl.vst.get(e.field).o);
+	  else
+		throw new IllegalStateException("Unreachable field access not struct nor class");
 	}
 	case ValueAtExpr e->
 	  this.rvr=visit(e.e);

@@ -7,8 +7,8 @@ public final class ClassType implements Type{
   public ClassType(String name){
 	this.name=name;
   }
-  public int size(){//todo will need to figure out sizing for codegen
-	return decl==null?0:decl.size;
+  public int size(){//todo? should just be pointer; get decl if you actually want size
+	return 4;
   }
   public List<ASTNode>children(){
 	return new ArrayList<ASTNode>();

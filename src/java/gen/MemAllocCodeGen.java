@@ -33,7 +33,18 @@ public class MemAllocCodeGen extends CodeGen{
 	  std.size=fpo;
 	  g=0;
 	}
-	case ClassDecl cd->{}//todo calculate size of declared class
+	case ClassDecl cd->{//todo? calculate size of declared class
+	  g=2;
+	  fpo=cd.parent==null?0:cd.parent.decl.size;
+	  for(VarDecl v:cd.vs)
+		visit(v);
+	  cd.size=fpo;
+	  int vto=-4;
+	  for(FunDecl f:cd.vt.values()){
+		f.vto=vto+=4;//todo? check sign for vto?
+		visit(f);
+	  }
+	}
 	case VarDecl vd->{
 	  vd.s=(vd.type.size()-1|3)+1;//to pad
 	  vd.g=g==0;
@@ -59,6 +70,8 @@ public class MemAllocCodeGen extends CodeGen{
 	  fd.out=Label.create("function_return_"+fd.name);
 	  g=2;
 	  fd.rvo=fpo=(fd.type.size()-1|3)+5;//return address, return val
+	  if(fd.vto>=0)
+		fpo+=4;//offset for class pointer in functions
 	  for(VarDecl v:fd.params)
 		visit(v);
 	  fd.co=fpo;
@@ -111,7 +124,7 @@ public class MemAllocCodeGen extends CodeGen{
 	case SizeOfExpr so->{}
 	case TypecastExpr tc->
 	  visit(tc.e);
-	case ClassInstantiationExpr cie->{}//todo this probably gens some memory
+	case ClassInstantiationExpr cie->{}//todo? no static mem i think?
 	case Assign as->{
 	  visit(as.lhs);
 	  visit(as.rhs);
