@@ -357,6 +357,7 @@ public class Parser{
 	  case CHAR:
 	  case VOID:
 	  case STRUCT:
+	  case CLASS:
 		nextToken();
 		Type t=parseType();
 		expect(TokenClass.RPAR);
