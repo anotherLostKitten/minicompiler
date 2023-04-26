@@ -30,8 +30,7 @@ public class LvalAnalyzer extends BaseSemanticAnalyzer{
 	}
 	case ClassFunCallExpr cfc->{
 	  visit(cfc.object);
-	  visit(cfc.call);
-	  yield false;
+	  yield visit(cfc.call);
 	}
 	case BinOp bo->{
 	  visit(bo.lhs);
