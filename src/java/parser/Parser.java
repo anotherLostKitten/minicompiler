@@ -50,14 +50,12 @@ public class Parser{
 	assert false;//should never reach this
 	return tokeniser.nextToken();
   }
-  //consume next token from tokeniser, or buffer if not empty
   private void nextToken(){
 	if(!buffer.isEmpty())
 	  token=buffer.remove();
 	else
 	  token=tokeniser.nextToken();
   }
-  //next token if cur is the expected, otherwise error
   private void expect(TokenClass...expected){
 	for(TokenClass e:expected)
 	  if(e==token.tokenClass){
@@ -67,7 +65,6 @@ public class Parser{
 	error(expected);
 	nextToken();
   }
-  //return whether current token is equal to any expected one
   private boolean accept(TokenClass...expected){
 	for(TokenClass e:expected)
 	  if(e==token.tokenClass)
@@ -249,7 +246,7 @@ public class Parser{
 	List<VarDecl>vs=new ArrayList<VarDecl>();
 	List<Stmt>ss=new ArrayList<Stmt>();
 	expect(TokenClass.LBRA);
-	while(accept(TokenClass.INT,TokenClass.CHAR,TokenClass.VOID,TokenClass.STRUCT))
+	while(accept(TokenClass.INT,TokenClass.CHAR,TokenClass.VOID,TokenClass.STRUCT,TokenClass.CLASS))
 	  vs.add(parseVardecl());
 	while(!accept(TokenClass.RBRA,TokenClass.EOF))
 	  ss.add(parseStmt());
