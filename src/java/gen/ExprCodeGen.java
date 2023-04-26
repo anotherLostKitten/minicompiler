@@ -5,8 +5,10 @@ import gen.asm.*;
  * Generates code to evaluate an expression and return the result in a register.
  */
 public class ExprCodeGen extends CodeGen{
-  public ExprCodeGen(AssemblyProgram asmProg){
+  private final FunDecl encapsf;
+  public ExprCodeGen(AssemblyProgram asmProg,FunDecl encapsf){
 	this.asmProg=asmProg;
+	this.encapsf=encapsf;
   }
   private Register rvr;
   private Register vr(){
@@ -52,10 +54,14 @@ public class ExprCodeGen extends CodeGen{
 	case ChrLiteral e->
 	  ts.emit(OpCode.LI,vr(),(int)e.v);
 	case VarExpr e->{
-	  if(e.vd.g){
+	  if(e.vd.g||e.vd.cdl){
 		Register va=Register.Virtual.create();
-		ts.emit(OpCode.LA,va,e.vd.l);
-		if(e.type instanceof PointerType||e.type instanceof ClassType||e.type==BaseType.INT)//todo classes?
+		if(e.vd.cdl){
+		  ts.emit(OpCode.LW,va,Register.Arch.fp,encapsf.rvo);
+		  ts.emit(OpCode.ADDI,va,va,e.vd.o);
+		}else
+		  ts.emit(OpCode.LA,va,e.vd.l);
+		if(e.type instanceof PointerType||e.type instanceof ClassType||e.type==BaseType.INT)
 		  ts.emit(OpCode.LW,vr(),va,0);
 		else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
 		  ts.emit(OpCode.LB,vr(),va,0);
@@ -63,7 +69,7 @@ public class ExprCodeGen extends CodeGen{
 		  this.rvr=va;
 	  }else{
 		if(!e.vd.r){
-		  if(e.type instanceof PointerType||e.type instanceof ClassType||e.type==BaseType.INT)//todo classes?
+		  if(e.type instanceof PointerType||e.type instanceof ClassType||e.type==BaseType.INT)
 			ts.emit(OpCode.LW,vr(),Register.Arch.fp,e.vd.o);
 		  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
 			ts.emit(OpCode.LB,vr(),Register.Arch.fp,e.vd.o);
@@ -73,7 +79,7 @@ public class ExprCodeGen extends CodeGen{
 		  this.rvr=e.vd.vr;
 	  }
 	}
-	case FunCallExpr e->{
+	case FunCallExpr e->{//todo implicit class functions(?)
 	  ts.emit("calling function "+e.f);
 	  for(int i=e.args.size()-1;i>=0;i--){//idk i guess i have to do rtl
 		VarDecl pr=e.fd.params.get(i);
@@ -91,7 +97,13 @@ public class ExprCodeGen extends CodeGen{
 		  }
 		}
 	  }
-	  ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-e.fd.rvo);
+	  if(e.fd.cdl){
+		Register cfo=Register.Virtual.create();
+		ts.emit(OpCode.LW,cfo,Register.Arch.fp,encapsf.rvo);//todo?? what is this offset?
+		ts.emit(OpCode.SW,cfo,Register.Arch.sp,-4);//save class object
+		ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-e.fd.rvo-4);
+	  }else
+		ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-e.fd.rvo);
 	  ts.emit(OpCode.SW,Register.Arch.ra,Register.Arch.sp,0);
 	  ts.emit(OpCode.JAL,e.fd.in);
 	  ts.emit(OpCode.LW,Register.Arch.ra,Register.Arch.sp,0);

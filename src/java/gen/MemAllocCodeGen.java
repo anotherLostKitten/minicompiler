@@ -42,7 +42,8 @@ public class MemAllocCodeGen extends CodeGen{
 	  StringBuilder sb=new StringBuilder("word ");
 	  for(FunDecl f:cd.vt.values()){
 		f.vto=vto+=4;//todo? check sign for vto?
-		visit(f);
+		if(f.in==null)
+		  visit(f);
 		sb.append(f.in.name+", ");//todo? do i care about comma trailing?
 	  }
 	  ds.emit(cd.vtl=Label.create("virtual_table_"+cd.type.name));
@@ -73,8 +74,8 @@ public class MemAllocCodeGen extends CodeGen{
 	  fd.out=Label.create("function_return_"+fd.name);
 	  g=2;
 	  fd.rvo=fpo=(fd.type.size()-1|3)+5;//return address, return val
-	  if(fd.vto>=0)
-		fpo+=4;//offset for class pointer in functions
+	  if(fd.cdl)
+		fpo+=4;//offset for implicit class pointer in functions
 	  for(VarDecl v:fd.params)
 		visit(v);
 	  fd.co=fpo;

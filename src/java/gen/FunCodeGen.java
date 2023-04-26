@@ -16,7 +16,7 @@ public class FunCodeGen extends CodeGen{
 	fs.emit(OpCode.ADD,Register.Arch.fp,Register.Arch.sp,Register.Arch.zero);
 	fs.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,fd.size);
 	fs.emit(OpCode.PUSH_REGISTERS);
-	StmtCodeGen scd=new StmtCodeGen(asmProg);
+	StmtCodeGen scd=new StmtCodeGen(asmProg,fd);
 	scd.visit(fd.block);
 	fs.emit("forced return "+fd.name);
 	fs.emit(fd.out);

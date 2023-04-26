@@ -1,13 +1,20 @@
 class Azinga{
   int y;
   void func(){
-	print_s((char*)"goodbye gamers");
+	print_s((char*)"goodbye gamers\n");
+  }
+  void chunk(int a){
+	print_i(a+y);
   }
 }
 class Bazinga extends Azinga{
   int x;
   void func(){
-	print_s((char*)"hello gamers");
+	print_s((char*)"hello gamers\n");
+  }
+  void anotherFunc(int a){
+	print_i(a);
+	chunk(a);
   }
 }
 int main(){
@@ -22,4 +29,5 @@ int main(){
   bazinga.func();
   tSatF.func();
   aILD.func();
+  bazinga.anotherFunc(bazinga.y);
 }

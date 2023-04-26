@@ -13,6 +13,8 @@ public class LvalAnalyzer extends BaseSemanticAnalyzer{
 	case Type t->false;
 	case StructTypeDecl std->false;
 	case ClassDecl cd->{
+	  for(VarDecl vd:cd.vs)
+		vd.r=false;
 	  for(FunDecl fd:cd.fs)
 		visit(fd);
 	  yield false;

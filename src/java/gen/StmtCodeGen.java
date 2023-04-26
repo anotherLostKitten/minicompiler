@@ -2,8 +2,10 @@ package gen;
 import ast.*;
 import gen.asm.*;
 public class StmtCodeGen extends CodeGen{
-  public StmtCodeGen(AssemblyProgram asmProg){
+  private final FunDecl encapsf;
+  public StmtCodeGen(AssemblyProgram asmProg,FunDecl encapsf){
 	this.asmProg=asmProg;
+	this.encapsf=encapsf;
   }
   void visit(Stmt z){
 	AssemblyProgram.Section ts=asmProg.getCurrentSection();
@@ -17,7 +19,7 @@ public class StmtCodeGen extends CodeGen{
 	  ts.emit("while");
 	  Label c=Label.create("while_cond"),e=Label.create("while_end");
 	  ts.emit(c);
-	  Register v=(new ExprCodeGen(asmProg)).visit(w.c);
+	  Register v=(new ExprCodeGen(asmProg,encapsf)).visit(w.c);
 	  ts.emit(OpCode.BEQZ,v,e);
 	  ts.emit("then");
 	  visit(w.y);
@@ -27,7 +29,7 @@ public class StmtCodeGen extends CodeGen{
 	}
 	case If i->{
 	  ts.emit("if");
-	  Register v=(new ExprCodeGen(asmProg)).visit(i.c);
+	  Register v=(new ExprCodeGen(asmProg,encapsf)).visit(i.c);
 	  if(i.n==null){
 		Label n=Label.create("if_no");
 		ts.emit(OpCode.BEQZ,v,n);
@@ -51,7 +53,7 @@ public class StmtCodeGen extends CodeGen{
 	case Return r->{
 	  ts.emit("return");
 	  if(r.e!=null){
-		Register v=(new ExprCodeGen(asmProg)).visit(r.e);
+		Register v=new ExprCodeGen(asmProg,encapsf).visit(r.e);
 		if(r.e.type instanceof StructType s){
 		  Register cp=Register.Virtual.create();
 		  for(int i=0;i<s.size();i+=4){
@@ -69,7 +71,7 @@ public class StmtCodeGen extends CodeGen{
 	}
 	case ExprStmt e->{
 	  ts.emit("exprstmt");
-	  (new ExprCodeGen(asmProg)).visit(e.e);
+	  new ExprCodeGen(asmProg,encapsf).visit(e.e);
 	}
 	}
   }
