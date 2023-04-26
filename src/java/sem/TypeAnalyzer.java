@@ -1,11 +1,13 @@
 package sem;
 import ast.*;
 import ast.BinOp.Op;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 public class TypeAnalyzer extends BaseSemanticAnalyzer{
   private FunDecl frt=null;
   private Map<String,StructTypeDecl>structs;
+  private Map<String,ClassDecl>classes;
   public Type visit(ASTNode node){
 	return switch(node){
 	case null->{
@@ -13,6 +15,7 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	}
 	case Program p->{
 	  structs=new HashMap<String,StructTypeDecl>();
+	  classes=new HashMap<String,ClassDecl>();
 	  for(Decl d:p.decls){
 		visit(d);
 		if(d instanceof VarDecl vd)
@@ -31,12 +34,18 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  error("StructType references undefined struct "+t.name);
 	  yield BaseType.UNKNOWN;
 	}
-	case ClassType t->BaseType.UNKNOWN;//todo
+	case ClassType t->{
+	  if((t.decl=classes.get(t.name))!=null)
+		yield t;
+	  error("ClassType references undefined class "+t.name);
+	  yield BaseType.UNKNOWN;
+	}
 	case ArrayType t->{
 	  visit(t.type);
 	  yield t;
 	}
 	case StructTypeDecl std->{
+	  std.type.decl=std;
 	  std.vst=new HashMap<String,VarDecl>();
 	  for(VarDecl vd:std.vs){
 		visit(vd);
@@ -48,7 +57,42 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 		structs.put(std.type.name,std);
 	  yield BaseType.NONE;
 	}
-	case ClassDecl cd->BaseType.UNKNOWN;//todo
+	case ClassDecl cd->{
+	  cd.type.decl=cd;
+	  //todo? make sure overriding types match, build vst &c. is correct
+	  if(cd.parent==null){
+		cd.vst=new LinkedHashMap<String,VarDecl>();
+		cd.vt=new LinkedHashMap<String,FunDecl>();
+	  }else{
+		cd.vst=new LinkedHashMap<String,VarDecl>(classes.get(cd.parent.name).vst);
+		cd.vt=new LinkedHashMap<String,FunDecl>(classes.get(cd.parent.name).vt);
+	  }
+	  for(VarDecl vd:cd.vs){
+		visit(vd);
+		cd.vst.put(vd.name,vd);
+	  }
+	  for(FunDecl fd:cd.fs){
+		visit(fd);
+		if(cd.vst.containsKey(fd.name))
+		  error("ClassDecl function overriding a field "+fd.name);
+		FunDecl pfd=cd.vt.get(fd.name);
+		if(pfd!=null)
+		  if(!pfd.type.equals(fd.type))
+			error("ClassDecl function override different return type "+fd.name);
+		  else if(pfd.params.size()!=fd.params.size())
+			error("ClassDecl function override different number args "+fd.name);
+		  else
+			for(int i=0;i<fd.params.size();i++)
+			  if(!pfd.params.get(i).type.equals(fd.params.get(i).type))
+				error("ClassDecl function override "+fd.name+" different arg at "+i);
+		cd.vt.put(fd.name,fd);
+	  }
+	  if(classes.containsKey(cd.type.name))
+		error("ClassDecl class name in use");
+	  else
+		classes.put(cd.type.name,cd);
+	  yield BaseType.NONE;
+	}
 	case VarDecl vd->{
 	  switch(vd.type){
 	  case BaseType t->{
@@ -74,44 +118,56 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  frt=null;
 	  yield BaseType.NONE;
 	}
-	case IntLiteral i->{
+	case IntLiteral i->
 	  i.type=BaseType.INT;
-	  yield i.type;
-	}
-	case StrLiteral s->{
+	case StrLiteral s->
 	  s.type=new ArrayType(BaseType.CHAR,s.v.length()+1);
-	  yield s.type;
-	}
-	case ChrLiteral c->{
+	case ChrLiteral c->
 	  c.type=BaseType.CHAR;
-	  yield c.type;
-	}
 	case VarExpr v->{
-	  if(v.vd!=null)
-		v.type=v.vd.type;
-	  else{
+	  if(v.vd==null){
 		error("VarExpr unknown type as declaration missing "+v.name);
-		v.type=BaseType.UNKNOWN;
-	  }
-	  yield v.type;
+		yield v.type=BaseType.UNKNOWN;
+	  }else
+		yield v.type=v.vd.type;
 	}
 	case FunCallExpr fc->{
 	  if(fc.fd==null){
 		error("FunCallExpr unknown type as declaration missing "+fc.f);
-		fc.type=BaseType.UNKNOWN;
-	  }else{
-		int n=fc.args.size();
-		if(n==fc.fd.params.size()){
-		  for(int i=0;i<n;i++)
-			if(!visit(fc.args.get(i)).equals(fc.fd.params.get(i).type))
-			  error("FunCallExpr argument "+i+" types differ "+fc.f);
-		}else
-		  error("FunCallExpr number arguments differ "+fc.f+"; expected "+fc.fd.params.size()+" found "+n);
-		fc.type=fc.fd.type;
+		yield fc.type=BaseType.UNKNOWN;
 	  }
-	  yield fc.type;
+	  int n=fc.args.size();
+	  if(n==fc.fd.params.size()){
+		for(int i=0;i<n;i++)
+		  if(!visit(fc.args.get(i)).equals(fc.fd.params.get(i).type))
+			error("FunCallExpr argument "+i+" types differ "+fc.f);
+	  }else
+		error("FunCallExpr #args != "+fc.f+" expect "+fc.fd.params.size()+" found "+n);
+	  yield fc.type=fc.fd.type;
 	}
-	case ClassFunCallExpr cfc->BaseType.UNKNOWN;//todo
+	case ClassFunCallExpr cfc->{
+	  yield cfc.type=switch(visit(cfc.object)){
+	  case ClassType ct->{
+		FunDecl fd=ct.decl.vt.get(cfc.call.f);
+		if(fd!=null){
+		  int n=cfc.call.args.size();
+		  if(n==fd.params.size()){
+			for(int i=0;i<n;i++)
+			  if(!visit(cfc.call.args.get(i)).equals(fd.params.get(i).type))
+				error("ClassFunCallExpr argument "+i+" types differ "+cfc.call.f);
+		  }else
+			error("ClassFunCallExpr #args != "+cfc.call.f+": e"+fd.params.size()+" f"+n);
+		  yield cfc.call.type=fd.type;
+		}
+		error("ClassFunCallExpr class does not have method "+cfc.call.f);
+		yield cfc.call.type=BaseType.UNKNOWN;
+	  }
+	  default->{
+		error("ClassFunCallExpr not a class "+cfc.call.f);
+		yield BaseType.UNKNOWN;
+	  }
+	  };
+	}
 	case BinOp bo->{
 	  bo.type=switch(bo.op){
 	  case NE,EQ->{
@@ -147,51 +203,53 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  yield ra.type;
 	}
 	case FieldAccessExpr fa->{
-	  fa.type=switch(visit(fa.struct)){
+	  yield fa.type=switch(visit(fa.struct)){
 	  case StructType t->{
-		if(t.decl==null){
+		if(t.decl!=null){
+		  VarDecl ft=t.decl.vst.get(fa.field);
+		  if(ft!=null)
+			yield ft.type;
+		  error("FieldAccessExpr undefined struct field <"+t.name+">."+fa.field);
+		}else
 		  error("FieldAccessExpr struct undefined "+t.name);
-		  yield BaseType.UNKNOWN;
-		}
-		VarDecl ft=t.decl.vst.get(fa.field);
-		if(ft!=null)
-		  yield ft.type;
-		error("FieldAccessExpr undefined field <"+t.name+">."+fa.field);
+		yield BaseType.UNKNOWN;
+	  }
+	  case ClassType t->{
+		if(t.decl!=null){
+		  VarDecl ft=t.decl.vst.get(fa.field);
+		  if(ft!=null)
+			yield ft.type;
+		  error("FieldAccessExpr undefined class field <"+t.name+">."+fa.field);
+		}else
+		  error("FieldAccessExpr class undefined "+t.name);
 		yield BaseType.UNKNOWN;
 	  }
 	  case default->{
-		error("FieldAccessExpr not a struct");
+		error("FieldAccessExpr not a struct/class");
 		yield BaseType.UNKNOWN;
 	  }
 	  };
-	  yield fa.type;
 	}
 	case ValueAtExpr va->{
-	  va.type=switch(visit(va.e)){
+	  yield va.type=switch(visit(va.e)){
 	  case PointerType t->t.type;
 	  case default->{
 		error("ValueAtExpr invalid not pointer");
 		yield BaseType.UNKNOWN;
 	  }
 	  };
-	  yield va.type;
 	}
 	case AddressOfExpr ao->{
 	  if(visit(ao.e)==BaseType.UNKNOWN){
-		ao.type=BaseType.UNKNOWN;
 		error("AddressOfExpr invalid unknown type");
+		yield ao.type=BaseType.UNKNOWN;
 	  }else
-		ao.type=new PointerType(ao.e.type);
-	  yield ao.type;
+		yield ao.type=new PointerType(ao.e.type);
 	}
 	case SizeOfExpr so->{
-	  if(visit(so.t)!=BaseType.UNKNOWN)
-		so.type=BaseType.INT;
-	  else{
+	  if(visit(so.t)==BaseType.UNKNOWN)
 		error("SizeOfExpr unknown type");
-		so.type=BaseType.UNKNOWN;
-	  }
-	  yield so.type;
+	  yield so.type=BaseType.INT;
 	}
 	case TypecastExpr tc->{
 	  visit(tc.e);
@@ -204,7 +262,7 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 		yield BaseType.UNKNOWN;
 	  }
 	  case PointerType pt->{
-		yield switch(tc.t){
+		yield switch(tc.e.type){
 		case ArrayType af->{
 		  if(af.type.equals(pt.type))
 			yield pt;
@@ -219,6 +277,16 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 		}
 		};
 	  }
+	  case ClassType ct->{
+		if(tc.e.type instanceof ClassType cty){
+		  for(ClassDecl tmp=cty.decl;tmp.parent!=null&&(tmp=classes.get(tmp.parent.name))!=null;)
+			if(tmp.type.name.equals(ct.name))
+			  yield(tmp.type);
+		  error("TypeCastExpr "+cty.name+"not a descendant of class "+ct.name);
+		}else
+		  error("TypeCastExpr cannot cast this type into class "+ct.name);
+		yield BaseType.UNKNOWN;
+	  }
 	  case default->{
 		error("TypecastExpr cannot cast to this type");
 		yield BaseType.UNKNOWN;
@@ -226,16 +294,16 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	  };
 	  yield tc.type;
 	}
-	case ClassInstantiationExpr cie->BaseType.UNKNOWN;//todo
+	case ClassInstantiationExpr cie->
+	  cie.type=visit(cie.t);
 	case Assign as->{
 	  visit(as.lhs);
 	  visit(as.rhs);
 	  if(as.lhs.type==BaseType.VOID||as.lhs.type instanceof ArrayType||!as.lhs.type.equals(as.rhs.type)){
 		error("Assign invalid types");
-		as.type=BaseType.UNKNOWN;
+		yield as.type=BaseType.UNKNOWN;
 	  }else
-		as.type=as.lhs.type;
-	  yield as.type;
+		yield as.type=as.lhs.type;
 	}
 	case ExprStmt es->{
 	  visit(es.e);

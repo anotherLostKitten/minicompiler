@@ -2,9 +2,13 @@ package sem;
 import ast.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 public class NameAnalyzer extends BaseSemanticAnalyzer{
   private Scope scope;
+  private Map<String,Scope>css;
   public void visit(ASTNode node){
 	switch(node){
 	case null->
@@ -12,6 +16,7 @@ public class NameAnalyzer extends BaseSemanticAnalyzer{
 	case Program p->{
 	  p.decls.addAll(0,Arrays.asList(new FunDecl[]{new FunDecl(BaseType.VOID,"print_s",Arrays.asList(new VarDecl[]{new VarDecl(new PointerType(BaseType.CHAR),"s")}),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0)),true),new FunDecl(BaseType.VOID,"print_i",Arrays.asList(new VarDecl[]{new VarDecl(BaseType.INT,"i")}),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0)),true),new FunDecl(BaseType.VOID,"print_c",Arrays.asList(new VarDecl[]{new VarDecl(BaseType.CHAR,"c")}),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0)),true),new FunDecl(BaseType.CHAR,"read_c",new ArrayList<VarDecl>(0),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0)),true),new FunDecl(BaseType.INT,"read_i",new ArrayList<VarDecl>(0),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0)),true),new FunDecl(new PointerType(BaseType.VOID),"mcmalloc",Arrays.asList(new VarDecl[]{new VarDecl(BaseType.INT,"size")}),new Block(new ArrayList<VarDecl>(0),new ArrayList<Stmt>(0)),true)}));
 	  scope=new Scope();
+	  css=new HashMap<String,Scope>();
 	  for(Decl d:p.decls)
 		visit(d);
 	  if(scope.lookupCurrent("main")instanceof FunSymbol f)
@@ -28,7 +33,29 @@ public class NameAnalyzer extends BaseSemanticAnalyzer{
 		visit(v);
 	  scope=scope.outer;
 	}
-	case ClassDecl cd->{}//todo
+	case ClassDecl cd->{
+	  if(css.containsKey(cd.type.name))
+		error("Class name already used "+cd.type.name);
+	  Scope gs=scope;
+	  if(cd.parent!=null&&(scope=css.get(cd.parent.name))==null)
+		error("Parent not declared "+cd.parent.name);
+	  scope=new Scope(scope);
+	  for(VarDecl v:cd.vs){
+		v.cdl=true;
+		if(scope.lookupCurrent(v.name)!=null)
+		  error("VarDecl already used in class "+v.name);
+		else if(scope.lookup(v.name)!=null&&gs.lookup(v.name)==null)
+		  error("VarDecl used in a parent class "+v.name);
+		else
+		  scope.put(new VarSymbol(v));
+	  }
+	  for(FunDecl f:cd.fs){
+		f.cdl=true;
+		visit(f);
+	  }
+	  css.put(cd.name,scope);
+	  scope=gs;
+	}
 	case VarDecl vd->{
 	  if(scope.lookupCurrent(vd.name)!=null)
 		error("VarDecl already used "+vd.name);
@@ -70,7 +97,11 @@ public class NameAnalyzer extends BaseSemanticAnalyzer{
 	  for(Expr r:fc.args)
 		visit(r);
 	}
-	case ClassFunCallExpr cfc->{}//todo
+	case ClassFunCallExpr cfc->{
+	  visit(cfc.object);
+	  for(Expr r:cfc.call.args)
+		visit(r);
+	}
 	case BinOp bo->{
 	  visit(bo.lhs);
 	  visit(bo.rhs);

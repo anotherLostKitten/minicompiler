@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 public final class VarDecl extends Decl{
-  public boolean g,r;
+  public boolean g,r;//global,register
   public int o,s;
   public Label l;
   public Register vr;

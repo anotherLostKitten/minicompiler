@@ -1,8 +1,5 @@
 package sem;
 import ast.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 public class LvalAnalyzer extends BaseSemanticAnalyzer{
   public boolean visit(ASTNode node){
 	return switch(node){
