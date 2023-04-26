@@ -149,7 +149,7 @@ public class TypeAnalyzer extends BaseSemanticAnalyzer{
 	case ClassFunCallExpr cfc->{
 	  yield cfc.type=switch(visit(cfc.object)){
 	  case ClassType ct->{
-		FunDecl fd=ct.decl.vt.get(cfc.call.f);
+		FunDecl fd=cfc.call.fd=ct.decl.vt.get(cfc.call.f);
 		if(fd!=null){
 		  int n=cfc.call.args.size();
 		  if(n==fd.params.size()){

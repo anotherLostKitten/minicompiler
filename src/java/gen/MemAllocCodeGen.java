@@ -3,7 +3,6 @@ import ast.*;
 import gen.asm.*;
 import java.util.HashMap;
 import java.util.Map;
-//allocator for global & local variable decls
 public class MemAllocCodeGen extends CodeGen{
   AssemblyProgram.Section ds;
   Map<String,Label>strls;
@@ -35,15 +34,19 @@ public class MemAllocCodeGen extends CodeGen{
 	}
 	case ClassDecl cd->{//todo? calculate size of declared class
 	  g=2;
-	  fpo=cd.parent==null?0:cd.parent.decl.size;
+	  fpo=cd.parent==null?4:cd.parent.decl.size;//4 is vtable address size
 	  for(VarDecl v:cd.vs)
 		visit(v);
 	  cd.size=fpo;
 	  int vto=-4;
+	  StringBuilder sb=new StringBuilder("word ");
 	  for(FunDecl f:cd.vt.values()){
 		f.vto=vto+=4;//todo? check sign for vto?
 		visit(f);
+		sb.append(f.in.name+", ");//todo? do i care about comma trailing?
 	  }
+	  ds.emit(cd.vtl=Label.create("virtual_table_"+cd.type.name));
+	  ds.emit(new Directive(sb.toString()));
 	}
 	case VarDecl vd->{
 	  vd.s=(vd.type.size()-1|3)+1;//to pad

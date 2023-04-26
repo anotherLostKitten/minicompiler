@@ -55,7 +55,7 @@ public class ExprCodeGen extends CodeGen{
 	  if(e.vd.g){
 		Register va=Register.Virtual.create();
 		ts.emit(OpCode.LA,va,e.vd.l);
-		if(e.type instanceof PointerType||e.type==BaseType.INT)
+		if(e.type instanceof PointerType||e.type instanceof ClassType||e.type==BaseType.INT)//todo classes?
 		  ts.emit(OpCode.LW,vr(),va,0);
 		else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
 		  ts.emit(OpCode.LB,vr(),va,0);
@@ -63,7 +63,7 @@ public class ExprCodeGen extends CodeGen{
 		  this.rvr=va;
 	  }else{
 		if(!e.vd.r){
-		  if(e.type instanceof PointerType||e.type==BaseType.INT)
+		  if(e.type instanceof PointerType||e.type instanceof ClassType||e.type==BaseType.INT)//todo classes?
 			ts.emit(OpCode.LW,vr(),Register.Arch.fp,e.vd.o);
 		  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
 			ts.emit(OpCode.LB,vr(),Register.Arch.fp,e.vd.o);
@@ -79,7 +79,7 @@ public class ExprCodeGen extends CodeGen{
 		VarDecl pr=e.fd.params.get(i);
 		ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-pr.s);
 		Register v=visit(e.args.get(i));
-		if(pr.type instanceof PointerType||pr.type==BaseType.INT)
+		if(pr.type instanceof PointerType||e.type instanceof ClassType||pr.type==BaseType.INT)
 		  ts.emit(OpCode.SW,v,Register.Arch.sp,0);
 		else if(pr.type==BaseType.CHAR||pr.type==BaseType.VOID)
 		  ts.emit(OpCode.SB,v,Register.Arch.sp,0);
@@ -95,7 +95,7 @@ public class ExprCodeGen extends CodeGen{
 	  ts.emit(OpCode.SW,Register.Arch.ra,Register.Arch.sp,0);
 	  ts.emit(OpCode.JAL,e.fd.in);
 	  ts.emit(OpCode.LW,Register.Arch.ra,Register.Arch.sp,0);
-	  if(e.type instanceof PointerType||e.type==BaseType.INT)
+	  if(e.type instanceof PointerType||e.type instanceof ClassType||e.type==BaseType.INT)
 		ts.emit(OpCode.LW,vr(),Register.Arch.sp,4);
 	  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
 		ts.emit(OpCode.LB,vr(),Register.Arch.sp,4);
@@ -109,7 +109,47 @@ public class ExprCodeGen extends CodeGen{
 	  }
 	  ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,e.fd.co);
 	}
-	case ClassFunCallExpr cfc->{}//todo class function calls
+	case ClassFunCallExpr cfc->{
+	  ts.emit("calling class function "+cfc.call.f);
+	  Register cfo=visit(cfc.object);
+	  for(int i=cfc.call.args.size()-1;i>=0;i--){//idk i guess i have to do rtl
+		VarDecl pr=cfc.call.fd.params.get(i);
+		ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-pr.s);
+		Register v=visit(cfc.call.args.get(i));
+		if(pr.type instanceof PointerType||cfc.call.type instanceof ClassType||pr.type==BaseType.INT)
+		  ts.emit(OpCode.SW,v,Register.Arch.sp,0);
+		else if(pr.type==BaseType.CHAR||pr.type==BaseType.VOID)
+		  ts.emit(OpCode.SB,v,Register.Arch.sp,0);
+		else{
+		  Register cp=Register.Virtual.create();
+		  for(int j=0;j<pr.type.size();j+=4){
+			ts.emit(OpCode.LW,cp,v,j);
+			ts.emit(OpCode.SW,cp,Register.Arch.sp,j);
+		  }
+		}
+	  }
+	  ts.emit(OpCode.SW,cfo,Register.Arch.sp,-4);//save class object
+	  ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-cfc.call.fd.rvo-4);
+	  ts.emit(OpCode.SW,Register.Arch.ra,Register.Arch.sp,0);
+	  Register q=Register.Virtual.create();
+	  ts.emit(OpCode.LW,q,cfo,0);//get base of vtbl from class address, then get func off
+	  ts.emit(OpCode.LW,q,q,((ClassType)cfc.object.type).decl.vt.get(cfc.call.f).vto);
+	  ts.emit(OpCode.JALR,q);
+	  ts.emit(OpCode.LW,Register.Arch.ra,Register.Arch.sp,0);
+	  if(cfc.call.type instanceof PointerType||cfc.call.type instanceof ClassType||cfc.call.type==BaseType.INT)
+		ts.emit(OpCode.LW,vr(),Register.Arch.sp,4);
+	  else if(cfc.call.type==BaseType.CHAR||cfc.call.type==BaseType.VOID)
+		ts.emit(OpCode.LB,vr(),Register.Arch.sp,4);
+	  else{
+		Register cp=Register.Virtual.create();
+		for(int i=0;i<cfc.call.type.size();i+=4){
+		  ts.emit(OpCode.LW,cp,Register.Arch.sp,i+4);
+		  ts.emit(OpCode.SW,cp,Register.Arch.fp,i+cfc.call.o);
+		}
+		ts.emit(OpCode.ADDI,vr(),Register.Arch.fp,cfc.call.o);
+	  }
+	  ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,cfc.call.fd.co);
+	}
 	case BinOp e->{
 	  Register l=visit(e.lhs),r;
 	  switch(e.op){
@@ -245,9 +285,11 @@ public class ExprCodeGen extends CodeGen{
 	  ts.emit(OpCode.ADDI,Register.Arch.a0,Register.Arch.zero,cie.t.decl.size);
 	  ts.emit(OpCode.LI,Register.Arch.v0,9);
 	  ts.emit(OpCode.SYSCALL);
+	  ts.emit(OpCode.LA,Register.Arch.a0,cie.t.decl.vtl);
+	  ts.emit(OpCode.SW,Register.Arch.a0,Register.Arch.v0,0);
 	  this.rvr=Register.Arch.v0;
 	}
-	case Assign e->{//todo assigning class
+	case Assign e->{//todo? assigning class?
 	  if(e.lhs instanceof VarExpr ve&&ve.vd.r){
 		Register a2=visit(e.rhs);
 		this.rvr=ve.vd.vr;
@@ -303,12 +345,13 @@ public class ExprCodeGen extends CodeGen{
 	  }
 	}
 	case FieldAccessExpr e->{//todo? field access class?
-	  Register st=visitAddress(e.struct);
-	  if(e.struct.type instanceof StructType ss)
+	  if(e.struct.type instanceof StructType ss){
+		Register st=visitAddress(e.struct);
 		ts.emit(OpCode.ADDI,vr(),st,ss.decl.vst.get(e.field).o);
-	  else if(e.struct.type instanceof ClassType cs)
+	  }else if(e.struct.type instanceof ClassType cs){
+		Register st=visit(e.struct);
 		ts.emit(OpCode.ADDI,vr(),st,cs.decl.vst.get(e.field).o);
-	  else
+	  }else
 		throw new IllegalStateException("Unreachable field access not struct nor class");
 	}
 	case ValueAtExpr e->

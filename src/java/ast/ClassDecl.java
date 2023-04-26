@@ -1,13 +1,15 @@
 package ast;
+import gen.asm.Label;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.List;
 public final class ClassDecl extends Decl{
   public ClassType type,parent;
   public final List<VarDecl>vs;
   public final List<FunDecl>fs;
   public LinkedHashMap<String,VarDecl>vst;
   public LinkedHashMap<String,FunDecl>vt;
+  public Label vtl;
   public int size;//todo sizing
   public ClassDecl(ClassType type,ClassType par,List<VarDecl>vs,List<FunDecl>fs){
 	this.type=type;

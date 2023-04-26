@@ -27,10 +27,12 @@ public class ProgramCodeGen extends CodeGen{
 	for(Decl d:p.decls){
 	  switch(d){
 	  case FunDecl fd->{
-		if(!fd.sc){
-		  FunCodeGen fcg=new FunCodeGen(asmProg);
-		  fcg.visit(fd);
-		}
+		if(!fd.sc)
+		  new FunCodeGen(asmProg).visit(fd);
+	  }
+	  case ClassDecl cd->{
+		for(FunDecl fd:cd.fs)
+		  new FunCodeGen(asmProg).visit(fd);
 	  }
 	  default->{}
 	  };
