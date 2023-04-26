@@ -53,7 +53,7 @@ public class NameAnalyzer extends BaseSemanticAnalyzer{
 		f.cdl=true;
 		visit(f);
 	  }
-	  css.put(cd.name,scope);
+	  css.put(cd.type.name,scope);
 	  scope=gs;
 	}
 	case VarDecl vd->{
