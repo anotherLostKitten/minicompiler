@@ -102,10 +102,16 @@ public class ExprCodeGen extends CodeGen{
 		ts.emit(OpCode.LW,cfo,Register.Arch.fp,encapsf.rvo);//todo?? what is this offset?
 		ts.emit(OpCode.SW,cfo,Register.Arch.sp,-4);//save class object
 		ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-e.fd.rvo-4);
-	  }else
+		ts.emit(OpCode.SW,Register.Arch.ra,Register.Arch.sp,0);
+		Register q=Register.Virtual.create();
+		ts.emit(OpCode.LW,q,cfo,0);//get base of vtbl from class address, then get func off
+		ts.emit(OpCode.LW,q,q,encapsf.pcpc.vt.get(e.f).vto);
+		ts.emit(OpCode.JALR,q);
+	  }else{
 		ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-e.fd.rvo);
-	  ts.emit(OpCode.SW,Register.Arch.ra,Register.Arch.sp,0);
-	  ts.emit(OpCode.JAL,e.fd.in);
+		ts.emit(OpCode.SW,Register.Arch.ra,Register.Arch.sp,0);
+		ts.emit(OpCode.JAL,e.fd.in);
+	  }
 	  ts.emit(OpCode.LW,Register.Arch.ra,Register.Arch.sp,0);
 	  if(e.type instanceof PointerType||e.type instanceof ClassType||e.type==BaseType.INT)
 		ts.emit(OpCode.LW,vr(),Register.Arch.sp,4);

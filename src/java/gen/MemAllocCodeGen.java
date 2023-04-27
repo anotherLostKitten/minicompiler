@@ -42,6 +42,7 @@ public class MemAllocCodeGen extends CodeGen{
 	  StringBuilder sb=new StringBuilder("word ");
 	  for(FunDecl f:cd.vt.values()){
 		f.vto=vto+=4;//todo? check sign for vto?
+		f.pcpc=cd;
 		if(f.in==null)
 		  visit(f);
 		sb.append(f.in.name+", ");//todo? do i care about comma trailing?
