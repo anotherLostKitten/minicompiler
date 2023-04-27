@@ -342,7 +342,10 @@ public class ExprCodeGen extends CodeGen{
 	AssemblyProgram.Section ts=asmProg.getCurrentSection();
 	switch(exp){
 	case VarExpr e->{
-	  if(e.vd.g)
+	  if(e.vd.cdl){
+		ts.emit(OpCode.LW,vr(),Register.Arch.fp,encapsf.rvo);
+		ts.emit(OpCode.ADDI,this.rvr,this.rvr,e.vd.o);
+	  }else if(e.vd.g)
 		ts.emit(OpCode.LA,vr(),e.vd.l);
 	  else
 		ts.emit(OpCode.ADDI,vr(),Register.Arch.fp,e.vd.o);
