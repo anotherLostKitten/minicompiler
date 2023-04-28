@@ -7,7 +7,7 @@ public final class ClassType implements Type{
   public ClassType(String name){
 	this.name=name;
   }
-  public int size(){//todo? should just be pointer; get decl if you actually want size
+  public int size(){//get decl if you actually want size
 	return 4;
   }
   public List<ASTNode>children(){

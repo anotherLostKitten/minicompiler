@@ -134,4 +134,6 @@ int main(){
   classes[0].func();
   classes[1].func();
   classes[2].func();
+  bazinga.nest_azing.func();
+  print_i(bazinga.nest_azing.y);
 }

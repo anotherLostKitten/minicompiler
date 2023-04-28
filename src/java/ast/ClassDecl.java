@@ -10,7 +10,7 @@ public final class ClassDecl extends Decl{
   public LinkedHashMap<String,VarDecl>vst;
   public LinkedHashMap<String,FunDecl>vt;
   public Label vtl;
-  public int size;//todo sizing
+  public int size;
   public ClassDecl(ClassType type,ClassType par,List<VarDecl>vs,List<FunDecl>fs){
 	this.type=type;
 	this.parent=par;

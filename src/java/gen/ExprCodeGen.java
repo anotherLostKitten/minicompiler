@@ -79,7 +79,7 @@ public class ExprCodeGen extends CodeGen{
 		  this.rvr=e.vd.vr;
 	  }
 	}
-	case FunCallExpr e->{//todo implicit class functions(?)
+	case FunCallExpr e->{
 	  ts.emit("calling function "+e.f);
 	  for(int i=e.args.size()-1;i>=0;i--){//idk i guess i have to do rtl
 		VarDecl pr=e.fd.params.get(i);
@@ -99,13 +99,13 @@ public class ExprCodeGen extends CodeGen{
 	  }
 	  if(e.fd.cdl){
 		Register cfo=Register.Virtual.create();
-		ts.emit(OpCode.LW,cfo,Register.Arch.fp,encapsf.rvo);//todo?? what is this offset?
+		ts.emit(OpCode.LW,cfo,Register.Arch.fp,encapsf.rvo);
 		ts.emit(OpCode.SW,cfo,Register.Arch.sp,-4);//save class object
 		ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-e.fd.rvo-4);
 		ts.emit(OpCode.SW,Register.Arch.ra,Register.Arch.sp,0);
 		Register q=Register.Virtual.create();
-		ts.emit(OpCode.LW,q,cfo,0);//get base of vtbl from class address, then get func off
-		ts.emit(OpCode.LW,q,q,encapsf.pcpc.vt.get(e.f).vto);
+		ts.emit(OpCode.LW,q,cfo,0);//get base of vtbl from class address
+		ts.emit(OpCode.LW,q,q,encapsf.pcpc.vt.get(e.f).vto);//get func off
 		ts.emit(OpCode.JALR,q);
 	  }else{
 		ts.emit(OpCode.ADDI,Register.Arch.sp,Register.Arch.sp,-e.fd.rvo);
@@ -267,7 +267,7 @@ public class ExprCodeGen extends CodeGen{
 		ts.emit(OpCode.ADD,vr(),tmp2,arr);
 	  }
 	}
-	case FieldAccessExpr e->{//todo? access class fields?
+	case FieldAccessExpr e->{
 	  Register st=visit(e.struct);
 	  int o;
 	  if(e.struct.type instanceof StructType ss)
