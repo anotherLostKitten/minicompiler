@@ -22,7 +22,7 @@ public class MemAllocCodeGen extends CodeGen{
 	case BaseType t->{}
 	case PointerType t->{}
 	case StructType t->{}
-	case ClassType t->{}//todo? i think do nothing
+	case ClassType t->{}
 	case ArrayType t->{}
 	case StructTypeDecl std->{
 	  g=2;
@@ -32,7 +32,7 @@ public class MemAllocCodeGen extends CodeGen{
 	  std.size=fpo;
 	  g=0;
 	}
-	case ClassDecl cd->{//todo? calculate size of declared class
+	case ClassDecl cd->{
 	  g=2;
 	  fpo=cd.parent==null?4:cd.parent.decl.size;//4 is vtable address size
 	  for(VarDecl v:cd.vs)
@@ -41,11 +41,11 @@ public class MemAllocCodeGen extends CodeGen{
 	  int vto=-4;
 	  StringBuilder sb=new StringBuilder("word ");
 	  for(FunDecl f:cd.vt.values()){
-		f.vto=vto+=4;//todo? check sign for vto?
+		f.vto=vto+=4;
 		f.pcpc=cd;
 		if(f.in==null)
 		  visit(f);
-		sb.append(f.in.name+", ");//todo? do i care about comma trailing?
+		sb.append(f.in.name+", ");//looks like trailing comma doesn't matter
 	  }
 	  ds.emit(cd.vtl=Label.create("virtual_table_"+cd.type.name));
 	  ds.emit(new Directive(sb.toString()));
@@ -108,7 +108,7 @@ public class MemAllocCodeGen extends CodeGen{
 	  if(fc.type instanceof StructType st)
 		fc.o=fpo-=(st.size()-1|3)+1;//just allocate space on the stack for return values of any funciton which returns a struct (lazy solution)
 	}
-	case ClassFunCallExpr cfc->{//todo? think just need check for str literals?
+	case ClassFunCallExpr cfc->{
 	  visit(cfc.object);
 	  visit(cfc.call);
 	}
@@ -129,7 +129,7 @@ public class MemAllocCodeGen extends CodeGen{
 	case SizeOfExpr so->{}
 	case TypecastExpr tc->
 	  visit(tc.e);
-	case ClassInstantiationExpr cie->{}//todo? no static mem i think?
+	case ClassInstantiationExpr cie->{}
 	case Assign as->{
 	  visit(as.lhs);
 	  visit(as.rhs);

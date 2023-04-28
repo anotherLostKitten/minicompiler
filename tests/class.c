@@ -67,11 +67,15 @@ class Bazinga extends Azinga{
 	}else
 	  return acc;
   }
+  class Azinga returnor(){
+	return nest_azing;
+  }
 }
 int main(){
   class Bazinga bazinga;
   class Azinga tSatF;
   class Azinga aILD;
+  class Azinga classes[3];
   struct fungus asdf;
   int*tmp;
   bazinga=new class Bazinga();
@@ -122,4 +126,12 @@ int main(){
   print_c('\n');
   print_i(tmp[2]);
   print_c('\n');
+  print_s((char*)"\nidk man\n");
+  bazinga.returnor().func();
+  classes[0]=tSatF;
+  classes[1]=aILD;
+  classes[2]=(class Azinga)bazinga;
+  classes[0].func();
+  classes[1].func();
+  classes[2].func();
 }

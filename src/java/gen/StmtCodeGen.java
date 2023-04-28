@@ -60,7 +60,7 @@ public class StmtCodeGen extends CodeGen{
 			ts.emit(OpCode.LW,cp,v,i);
 			ts.emit(OpCode.SW,cp,Register.Arch.fp,i+4);
 		  }
-		}else if(r.e.type instanceof PointerType||r.e.type==BaseType.INT)
+		}else if(r.e.type instanceof PointerType||r.e.type instanceof ClassType||r.e.type==BaseType.INT)
 		  ts.emit(OpCode.SW,v,Register.Arch.fp,4);
 		else if(r.e.type==BaseType.CHAR||r.e.type==BaseType.VOID)
 		  ts.emit(OpCode.SB,v,Register.Arch.fp,4);

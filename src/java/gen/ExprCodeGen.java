@@ -251,7 +251,7 @@ public class ExprCodeGen extends CodeGen{
 	}
 	case ArrayAccessExpr e->{
 	  Register arr=visit(e.arr),ind=visit(e.ind);
-	  if(e.type instanceof PointerType||e.type==BaseType.INT){
+	  if(e.type instanceof PointerType||e.type instanceof ClassType||e.type==BaseType.INT){
 		Register tmp=Register.Virtual.create(),tmp2=Register.Virtual.create();
 		ts.emit(OpCode.SLL,tmp2,ind,2);
 		ts.emit(OpCode.ADD,tmp,tmp2,arr);
@@ -276,7 +276,7 @@ public class ExprCodeGen extends CodeGen{
 		o=cs.decl.vst.get(e.field).o;
 	  else
 		throw new IllegalStateException("FieldAccessExpr fetch not struct or class");
-	  if(e.type instanceof PointerType||e.type==BaseType.INT)
+	  if(e.type instanceof PointerType||e.type instanceof ClassType||e.type==BaseType.INT)
 		ts.emit(OpCode.LW,vr(),st,o);
 	  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
 		ts.emit(OpCode.LB,vr(),st,o);
@@ -285,7 +285,7 @@ public class ExprCodeGen extends CodeGen{
 	}
 	case ValueAtExpr e->{
 	  Register vl=visit(e.e);
-	  if(e.type instanceof PointerType||e.type==BaseType.INT)
+	  if(e.type instanceof PointerType||e.type instanceof ClassType||e.type==BaseType.INT)
 		ts.emit(OpCode.LW,vr(),vl,0);
 	  else if(e.type==BaseType.CHAR||e.type==BaseType.VOID)
 		ts.emit(OpCode.LB,vr(),vl,0);
@@ -352,7 +352,7 @@ public class ExprCodeGen extends CodeGen{
 	}
 	case ArrayAccessExpr e->{
 	  Register arr=visit(e.arr),ind=visit(e.ind);
-	  if(e.type instanceof PointerType||e.type==BaseType.INT){
+	  if(e.type instanceof PointerType||e.type instanceof ClassType||e.type==BaseType.INT){
 		Register tmp=Register.Virtual.create();
 		ts.emit(OpCode.SLL,tmp,ind,2);
 		ts.emit(OpCode.ADD,vr(),tmp,arr);
